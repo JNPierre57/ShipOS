@@ -1,0 +1,151 @@
+[
+  {
+    "name": "normal session",
+    "payloads": [
+      {
+        "event": "LoadGame",
+        "Commander": "Synthetic"
+      },
+      {
+        "event": "Status",
+        "Flags": 16777224
+      },
+      {
+        "event": "Shutdown"
+      }
+    ],
+    "expected": []
+  },
+  {
+    "name": "main ship death",
+    "payloads": [
+      {
+        "event": "Status",
+        "Flags": 16777216
+      },
+      {
+        "event": "Died"
+      }
+    ],
+    "expected": [
+      "elite.ship.destroyed"
+    ]
+  },
+  {
+    "name": "on foot death",
+    "payloads": [
+      {
+        "event": "Status",
+        "Flags": 0,
+        "Flags2": 1
+      },
+      {
+        "event": "Died"
+      }
+    ],
+    "expected": []
+  },
+  {
+    "name": "unknown death",
+    "payloads": [
+      {
+        "event": "Died"
+      }
+    ],
+    "expected": []
+  },
+  {
+    "name": "low fuel initial",
+    "payloads": [
+      {
+        "event": "Status",
+        "Flags": 524288
+      }
+    ],
+    "expected": []
+  },
+  {
+    "name": "low fuel transition",
+    "payloads": [
+      {
+        "event": "Status",
+        "Flags": 0
+      },
+      {
+        "event": "Status",
+        "Flags": 524288
+      }
+    ],
+    "expected": [
+      "elite.ship.fuel.low"
+    ]
+  },
+  {
+    "name": "hull episode",
+    "payloads": [
+      {
+        "event": "Status",
+        "Flags": 16777216
+      },
+      {
+        "event": "HullDamage",
+        "Health": 0.19,
+        "PlayerPilot": true,
+        "Fighter": false
+      },
+      {
+        "event": "HullDamage",
+        "Health": 0.1,
+        "PlayerPilot": true,
+        "Fighter": false
+      }
+    ],
+    "expected": [
+      "elite.ship.hull.critical"
+    ]
+  },
+  {
+    "name": "exobiology Analyse",
+    "payloads": [
+      {
+        "event": "ScanOrganic",
+        "ScanType": "Analyse",
+        "Genus": "$Codex_Ent_Stratum_Genus_Name;",
+        "Species": "$Codex_Ent_Stratum_07_Name;",
+        "Variant": "$Codex_Ent_Stratum_07_A_Name;",
+        "SystemAddress": 1,
+        "Body": 2
+      }
+    ],
+    "expected": [
+      "elite.exobiology.highValueDiscovery"
+    ]
+  },
+  {
+    "name": "remarkable multiple sources",
+    "payloads": [
+      {
+        "event": "Scan",
+        "SystemAddress": 1,
+        "BodyID": 2,
+        "PlanetClass": "Earthlike body",
+        "WasFootfalled": false
+      },
+      {
+        "event": "SAASignalsFound",
+        "SystemAddress": 1,
+        "BodyID": 2,
+        "Signals": [
+          {
+            "Type": "$SAA_SignalType_Biological;",
+            "Count": 6
+          }
+        ]
+      }
+    ],
+    "expected": [
+      "elite.exploration.remarkableBody",
+      "elite.exploration.remarkableBody"
+    ]
+  }
+]

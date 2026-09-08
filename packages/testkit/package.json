@@ -1,0 +1,13 @@
+{
+  "name": "@shipos/testkit",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@shipos/contracts": "1.0.0",
+    "ws": "8.21.3"
+  }
+}

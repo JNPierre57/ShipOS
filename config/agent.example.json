@@ -1,0 +1,9 @@
+{
+  "url": "ws://YOUR-MAC-TAILSCALE-HOST:48101/agent/v1/ws",
+  "pollMs": 1000,
+  "heartbeatMs": 10000,
+  "staleMs": 30000,
+  "reconnectMs": 1000,
+  "maxBackoffMs": 30000,
+  "window": 256
+}

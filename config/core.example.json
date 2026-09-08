@@ -1,0 +1,16 @@
+{
+  "host": "127.0.0.1",
+  "port": 48100,
+  "gatewayHost": "127.0.0.1",
+  "gatewayPort": 48101,
+  "heartbeatMs": 10000,
+  "staleMs": 30000,
+  "externalWindow": 1000,
+  "backupRetention": 10,
+  "obs": {
+    "enabled": false,
+    "host": "127.0.0.1",
+    "port": 4455,
+    "allowedInputs": []
+  }
+}

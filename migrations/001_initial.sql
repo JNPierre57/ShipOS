@@ -1,0 +1,12 @@
+CREATE TABLE source_events(id TEXT PRIMARY KEY, agent_id TEXT NOT NULL, sequence INTEGER NOT NULL, data TEXT NOT NULL, processing_state TEXT NOT NULL DEFAULT 'pending', inspection TEXT, UNIQUE(agent_id,sequence));
+CREATE TABLE agent_ingest_state(agent_id TEXT PRIMARY KEY, sequence INTEGER NOT NULL);
+CREATE TABLE domain_events(sequence INTEGER PRIMARY KEY AUTOINCREMENT,id TEXT UNIQUE NOT NULL,data TEXT NOT NULL,dispatch_state TEXT NOT NULL DEFAULT 'pending');
+CREATE TABLE director_decisions(event_id TEXT PRIMARY KEY,data TEXT NOT NULL);
+CREATE TABLE presentation_runs(id TEXT PRIMARY KEY,data TEXT NOT NULL);
+CREATE TABLE sessions(id TEXT PRIMARY KEY,data TEXT NOT NULL);
+CREATE TABLE expeditions(id TEXT PRIMARY KEY,data TEXT NOT NULL);
+CREATE TABLE records(id TEXT PRIMARY KEY,data TEXT NOT NULL);
+CREATE TABLE milestones(id TEXT PRIMARY KEY,data TEXT NOT NULL);
+CREATE TABLE settings(id TEXT PRIMARY KEY,data TEXT NOT NULL);
+CREATE TABLE module_storage(id TEXT PRIMARY KEY,data TEXT NOT NULL);
+CREATE TABLE world_state(id TEXT PRIMARY KEY,data TEXT NOT NULL);

@@ -1,0 +1,13 @@
+node_modules/
+dist/
+**/build/
+.env
+*.db*
+playwright-report/
+test-results/
+.runtime/
+release/
+.DS_Store
+.env.*
+*.env
+*.log
