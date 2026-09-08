@@ -55,6 +55,8 @@ Five public events: ship destroyed, critical hull, low fuel, high-value exobiolo
 
 ## Guides
 
+[Démarrage automatique Mac et Shadow](docs/autostart.md).
+
 **Installation sur Shadow depuis GitHub : [guide pas à pas en français](docs/demarrage-shadow.md).**
 
 Start with [Mac installation](docs/installation-mac.md), [Shadow installation](docs/installation-shadow.md), [Tailscale](docs/tailscale.md), [OBS](docs/obs-setup.md), [configuration](docs/configuration.md), [troubleshooting](docs/troubleshooting.md). Developer guides: [architecture](docs/architecture.md), [module SDK](docs/module-development.md), [event catalogue](docs/event-catalog.md), [testing](docs/testing.md), [final audit](docs/final-audit.md), [technical validation](docs/technical-validation.md), [deviations](docs/deviations.md).
