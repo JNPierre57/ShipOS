@@ -16,6 +16,8 @@ import { RealClock, type Clock } from "./clock.js";
 import { Registry } from "./module-registry.js";
 import { PresentationEngine } from "./presentation.js";
 import { Director } from "./director.js";
+import { ContextService } from "./context-service.js";
+import { contextModules } from "./context-modules.js";
 export function eventFactory(
   moduleId: string,
   candidate: Candidate,
@@ -57,6 +59,8 @@ export class RunContext {
   externalBus = new Set<(event: DomainEvent) => void>();
   readonly externalPublishing: boolean;
   private processing = false;
+  context: ContextService;
+  private cancelTick: (() => void) | undefined;
   sessionId: string | null = null;
   constructor(
     readonly mode: RunMode,
@@ -71,9 +75,69 @@ export class RunContext {
     this.world =
       store.get<WorldState>("world_state", "current") ?? initialWorld();
     this.modules = modules.map((m) => ({ ...m, policy: { ...m.policy } }));
+    this.modules.push(
+      ...contextModules
+        .filter(
+          (m) =>
+            !this.modules.some(
+              (existing) => existing.manifest.id === m.manifest.id,
+            ),
+        )
+        .map((m) => ({ ...m, policy: { ...m.policy } })),
+    );
+    this.context = new ContextService(store, clock.now());
+    this.context.restoreShip(this.world, clock.now());
     this.registry = new Registry(this.modules, store, failureThreshold);
     this.engine = new PresentationEngine(clock, store);
     this.director = new Director(clock, store, this.registry, this.engine);
+  }
+  private scheduleContext() {
+    this.cancelTick = this.clock.later(1000, () => {
+      try {
+        this.contextTick();
+      } catch (error) {
+        for (const log of this.diagnostics)
+          log({ code: "context_tick_failed", error: String(error) });
+      } finally {
+        this.scheduleContext();
+      }
+    });
+  }
+  stopContext() {
+    this.cancelTick?.();
+    this.cancelTick = undefined;
+  }
+  contextTick() {
+    const before = structuredClone(this.context.state);
+    try {
+      this.store.db.transaction(() => {
+        const { transition, candidate } = this.context.tick(this.clock.now());
+        if (transition) {
+          this.context.persistTransition(transition, this.mode);
+          if (this.sessionId) this.saveContextSession();
+        }
+        if (candidate) {
+          const at = new Date(this.clock.now()).toISOString();
+          const event = eventFactory(
+            "context",
+            candidate,
+            {
+              id: transition!.id,
+              observedAt: at,
+              sourceTimestamp: at,
+            } as SourceEvent,
+            this.mode,
+            this.clock,
+          );
+          if (this.sessionId) event.sessionId = this.sessionId;
+          this.store.domain(event);
+        }
+      })();
+    } catch (error) {
+      this.context.state = before;
+      throw error;
+    }
+    this.dispatch();
   }
   process() {
     if (this.processing) return;
@@ -85,7 +149,14 @@ export class RunContext {
         const diagnostics: unknown[] = [];
         const emitted: DomainEvent[] = [];
         let sessionId = this.sessionId;
+        let contextDraft: ReturnType<ContextService["source"]> | undefined;
         this.store.db.transaction(() => {
+          contextDraft = this.context.source(
+            source,
+            next,
+            this.clock.now(),
+            source.mode === "live" && !sessionId,
+          );
           if (source.mode === "live") {
             if (!sessionId) {
               sessionId = randomUUID();
@@ -103,6 +174,10 @@ export class RunContext {
             );
             next.expedition = active?.id ?? null;
             for (const module of this.modules) {
+              if (
+                contextModules.some((m) => m.manifest.id === module.manifest.id)
+              )
+                continue;
               for (const candidate of this.registry.detect(
                 module,
                 source,
@@ -122,6 +197,17 @@ export class RunContext {
                 emitted.push(this.store.domain(event));
               }
             }
+            for (const candidate of contextDraft.candidates) {
+              const event = eventFactory(
+                "context",
+                candidate,
+                source,
+                this.mode,
+                this.clock,
+              );
+              event.sessionId = sessionId;
+              emitted.push(this.store.domain(event));
+            }
           }
           if (source.mode === "live")
             aggregateExpedition(this.store, source, emitted);
@@ -132,6 +218,11 @@ export class RunContext {
           });
         })();
         this.world = next;
+        if (contextDraft) {
+          this.context.state = contextDraft.draft;
+          this.context.ship = contextDraft.ship;
+        }
+        if (source.mode === "live" && !this.cancelTick) this.scheduleContext();
         this.sessionId = sessionId;
         for (const d of diagnostics)
           for (const fn of this.diagnostics)
@@ -150,7 +241,7 @@ export class RunContext {
   }
   dispatch() {
     for (const event of this.store.events(0, 10000, true)) {
-      if (this.externalPublishing)
+      if (this.externalPublishing && event.type.startsWith("elite."))
         for (const fn of this.externalBus) {
           try {
             fn(event);
@@ -180,6 +271,7 @@ export class RunContext {
   }
   endSession() {
     if (this.sessionId) {
+      this.saveContextSession();
       const session = this.store.get<Record<string, unknown>>(
         "sessions",
         this.sessionId,
@@ -191,7 +283,20 @@ export class RunContext {
       this.sessionId = null;
     }
   }
+  private saveContextSession() {
+    if (this.sessionId)
+      this.store.put("context_sessions", this.sessionId, {
+        sessionId: this.sessionId,
+        activities: this.context.state.summaries,
+        census: this.context.state.census,
+        broadcast: this.context.state.timeline,
+        activityTimeline: this.context.state.activityTimeline,
+        buildTimeline: this.context.state.buildTimeline,
+        updatedAt: this.clock.now(),
+      });
+  }
   close() {
+    this.stopContext();
     this.director.stop();
     this.endSession();
     this.store.close();

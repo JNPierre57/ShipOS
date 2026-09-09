@@ -42,7 +42,7 @@ export class IsolatedRuns {
       .filter(Number.isFinite);
     const sourceEpoch = validTimes.length
       ? Math.min(...validTimes)
-      : Date.now();
+      : Date.parse("2026-01-01T00:00:00Z");
     const start = mode === "replay" ? sourceEpoch : Date.now();
     const clock =
       mode === "replay" ? new ReplayClock(start) : new VirtualClock(start);
@@ -93,7 +93,7 @@ export class IsolatedRuns {
       e.agentId = "isolated:" + result.id;
       if (level === "source") context.ingest(e);
       else {
-        const module = this.modules.find(
+        const module = context.modules.find(
           (m) => m.manifest.eventType === eventType,
         );
         if (!module) throw Error("Unknown event type");
@@ -123,10 +123,12 @@ export class IsolatedRuns {
       }
     };
     const finish = () => {
+      context.stopContext();
       result.events = context.store.events();
       result.state = "completed";
     };
     const cancel = () => {
+      context.stopContext();
       clearTimeout(timer);
       context.director.stop();
       if (result.state === "running") result.state = "cancelled";
@@ -159,6 +161,7 @@ export class IsolatedRuns {
         result.events = store.events();
         if (
           index >= timeline.length &&
+          elapsed >= (timeline.at(-1)?.at ?? 0) + 60000 &&
           context.engine.active.size === 0 &&
           context.director.queue.length === 0
         ) {

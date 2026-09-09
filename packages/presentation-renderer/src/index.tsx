@@ -1,4 +1,5 @@
 import { EventVisual, timeline, type VisualCard } from "./visuals.js";
+import { TerminalSequence, type TerminalDefinition } from "./terminal.js";
 import { useEffect, useState } from "react";
 import type { PresentationAction } from "../../contracts/src/index.js";
 export const assetCatalog: Record<
@@ -12,11 +13,15 @@ export const assetCatalog: Record<
     "high-value-exobiology",
     "remarkable-body",
     "test",
+    "context-novel",
+    "context-tension",
+    "context-critical",
+    "context-recovery",
   ].map((name, i) => [
     "audio.alert." + name,
     {
       frequency: 220 + i * 110,
-      duration: 0.35,
+      duration: name.startsWith("context-") ? 0.12 : 0.35,
       preload: "eager",
       provenance: "ShipOS original synthesized sine cue",
     },
@@ -130,6 +135,7 @@ export function Overlay() {
         setCards((old) => [
           ...old.filter((c) => c.id !== a.presentationRunId),
           {
+            terminal: a.payload.terminal as TerminalDefinition | undefined,
             visual: String(a.payload.visual ?? "orbital"),
             detail:
               typeof a.payload.detail === "string" ? a.payload.detail : "",
@@ -263,9 +269,13 @@ export function Overlay() {
     >
       <div id="PersistentLayer" />
       <div id="EventLayer">
-        {cards.map((c) => (
-          <EventVisual key={c.id} card={c} />
-        ))}
+        {cards.map((c) =>
+          c.terminal ? (
+            <TerminalSequence key={c.id} card={c} />
+          ) : (
+            <EventVisual key={c.id} card={c} />
+          ),
+        )}
       </div>
       <div id="GlobalFxLayer">
         {cards

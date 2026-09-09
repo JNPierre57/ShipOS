@@ -177,6 +177,9 @@ export class Registry {
     return detected ?? [];
   }
   present(module: ShipModule, event: DomainEvent, profile: Profile) {
-    return this.run(module, () => module.present(event, profile));
+    return this.run(module, () =>
+      terminalPresentation(event, module.present(event, profile)),
+    );
   }
 }
+import { terminalPresentation } from "./terminal-presentations.js";

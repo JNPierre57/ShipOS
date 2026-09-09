@@ -1,5 +1,7 @@
 # Module development
 
+The optional `PresentationDefinition.terminal` describes generic OS primitives: primitive, severity, label, lines, timingMs, emphasis. The renderer never interprets Elite fields. Core adapts the five existing module presentations to this contract, preserving detector code and dynamic species/body data. Historical illustrated definitions remain renderable and browser-tested. Internal context cue adapters are registered by RunContext, have no source detector, and use ordinary module policies. Context thresholds/evidence rules live in versioned `apps/core/src/context.ts`; add verified fixtures and deterministic replay tests when extending them.
+
 Register internal compiled modules explicitly in `apps/core/src/modules.ts`. Module code lives in modules/<name>/src/index.ts. Public SDK types are in packages/module-sdk. Do not import Core, Node servers, SQL, process.env or OBS; architecture checks enforce this boundary.
 
 Implement manifest (id/version/name/eventType), Zod configSchema, policy, detect and present. `detect(source, previous, next, ctx)` returns deterministic Candidate[]; `present(event, profile)` returns a declarative title/subtitle/accent/duration/slot/layers/audioAsset. Public event types are a closed V1 contract. No runtime plugin marketplace.

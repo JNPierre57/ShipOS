@@ -2,6 +2,8 @@
 
 Local flight telemetry and stream presentation for Elite Dangerous. Shadow Windows reads the game files; the Mac runs the durable Core, browser Overlay and Control Panel. Tailscale connects them. No cloud service, Docker or PM2 required.
 
+The **Context & Broadcast POC** adds independent activity evidence, persistent ship/build memory and restrained OS terminal sequences. Open [Context Lab](http://127.0.0.1:48100/control/?view=context) while Core is running; use Simulation for Quiet Travel, Combat Escalation, Close Call, Powerplay Combat or New Build. [Feasibility, defaults, limitations and benchmark](docs/context-broadcast-poc.md). The approved pre-POC release is tagged `before-context-broadcast-poc`.
+
 ## Start on the Mac
 
 Use **Node 24** (exact development runtime: 24.20.0). From this repository:

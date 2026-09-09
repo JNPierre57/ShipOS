@@ -1,5 +1,7 @@
 # Architecture
 
+The incremental [Context & Broadcast layer](context-broadcast-poc.md) adds `ContextService` per RunContext. Source handling drafts bounded evidence and transactional ship memory alongside the existing reducer. One injected 1 Hz Clock tick evaluates independent activities and broadcast hysteresis. Durable internal events enter the same outbox/Director/PresentationEngine; `elite.*` external subscriptions remain separate. Context does not add a process, port or Agent dependency. Migration 002 adds memory, significant transitions and session summaries.
+
 Four applications, four shared packages, five statically registered modules. `apps/core/src/modules.ts` is the registry. No arbitrary runtime code loading.
 
 Agent has no SQL, modules, presentation or server. It uses deterministic record identity, JSONL durable append, checkpoint recovery and bounded in-flight WebSocket delivery. SQLite belongs solely to Core. Core listens locally on two configured ports; UI is a client and may be closed at any time.

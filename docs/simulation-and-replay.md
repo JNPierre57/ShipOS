@@ -1,5 +1,7 @@
 # Simulation and replay
 
+Context scenarios: **Quiet Travel**, **Combat Escalation**, **Close Call**, **Powerplay Combat**, **New Build**. Select these at SourceEvent level, then inspect the isolated result in **Context Lab → Inspect**. Domain/presentation previews also support the four internal `shipos.*` cues. Each isolated run starts with empty context memory; identical payloads and empty initial memory produce identical contextual timelines and event IDs. No live memory is imported. A 60-second virtual observation tail is used consistently at every speed; cancelling stops context and presentation timers. Missing timestamps use a fixed replay epoch, never wall time. Scenario dates are sanitized fixtures, not live commander data.
+
 Control Panel Simulation supports SourceEvent, DomainEvent and presentation-only levels. Source scenario Everything Goes Wrong observes shield-down at0s, hull critical at2s, low fuel at5s, ship destruction at8s. Shield-down remains state, not a sixth public DomainEvent. Start an Overlay client to see it. Domain/presentation previews let you select each V1 event. Cancel a run from its history.
 
 Each isolated run owns an in-memory SQLite Store, WorldState, module registry, records, expedition services and VirtualClock/ReplayClock. Non-live contexts refuse persistent DBs. External publishing is always off. Live persistence and world are not shared. At most20 run contexts are retained. Closing Control Panel does not cancel a running scenario.

@@ -13,6 +13,9 @@ import type {
   DomainEvent,
 } from "../../../packages/contracts/src/index.js";
 export type Table =
+  | "context_memory"
+  | "context_transitions"
+  | "context_sessions"
   | "director_decisions"
   | "presentation_runs"
   | "sessions"

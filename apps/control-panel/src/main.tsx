@@ -1,9 +1,11 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import "./style.css";
+import { ContextLab } from "./context-lab.js";
 type Data = Record<string, unknown>;
 const pages = [
   "Overview",
+  "Context Lab",
   "Events",
   "Director",
   "Modules",
@@ -38,7 +40,11 @@ const Json = ({ value }: { value: unknown }) => (
   <pre>{JSON.stringify(value, (_k, v) => (v === null ? "UNKNOWN" : v), 2)}</pre>
 );
 function App() {
-  const [page, setPage] = useState("Overview"),
+  const [page, setPage] = useState(
+      new URLSearchParams(location.search).get("view") === "context"
+        ? "Context Lab"
+        : "Overview",
+    ),
     [status, setStatus] = useState<Data>({}),
     [events, setEvents] = useState<Data[]>([]),
     [olderEvents, setOlderEvents] = useState<Data[]>([]),
@@ -49,6 +55,7 @@ function App() {
     [runs, setRuns] = useState<Data[]>([]),
     [expeditionName, setExpeditionName] = useState("Into the black"),
     [level, setLevel] = useState("source"),
+    [scenario, setScenario] = useState("Everything Goes Wrong"),
     [eventType, setEventType] = useState("elite.ship.destroyed"),
     [speed, setSpeed] = useState("instant"),
     [files, setFiles] = useState<File[]>([]),
@@ -125,11 +132,12 @@ function App() {
     act("simulation", {
       level,
       eventType,
-      scenario: level === "source" ? "Everything Goes Wrong" : "single",
+      scenario: level === "source" ? scenario : "single",
       speed: 1,
     });
   let content: ReactNode;
-  if (page === "Overview")
+  if (page === "Context Lab") content = <ContextLab />;
+  else if (page === "Overview")
     content = (
       <>
         {title(
@@ -337,9 +345,7 @@ function App() {
             <label>
               Level
               <select value={level} onChange={(e) => setLevel(e.target.value)}>
-                <option value="source">
-                  SourceEvent · Everything Goes Wrong
-                </option>
+                <option value="source">SourceEvent timeline</option>
                 <option value="domain">DomainEvent → Director</option>
                 <option value="presentation">Presentation only</option>
               </select>
@@ -357,18 +363,44 @@ function App() {
                     "elite.ship.fuel.low",
                     "elite.exobiology.highValueDiscovery",
                     "elite.exploration.remarkableBody",
+                    "shipos.context.loadout.novel",
+                    "shipos.broadcast.tension",
+                    "shipos.broadcast.critical",
+                    "shipos.broadcast.recovery",
                   ].map((e) => (
                     <option key={e}>{e}</option>
                   ))}
                 </select>
               </label>
             )}
-            <div className="timeline">
-              <span>00s · shields down</span>
-              <span>02s · hull critical</span>
-              <span>05s · low fuel</span>
-              <span>08s · destroyed</span>
-            </div>
+            {level === "source" && (
+              <label>
+                Scenario
+                <select
+                  value={scenario}
+                  onChange={(e) => setScenario(e.target.value)}
+                >
+                  {[
+                    "Everything Goes Wrong",
+                    "Quiet Travel",
+                    "Combat Escalation",
+                    "Close Call",
+                    "Powerplay Combat",
+                    "New Build",
+                  ].map((s) => (
+                    <option key={s}>{s}</option>
+                  ))}
+                </select>
+              </label>
+            )}
+            {scenario === "Everything Goes Wrong" && (
+              <div className="timeline">
+                <span>00s · shields down</span>
+                <span>02s · hull critical</span>
+                <span>05s · low fuel</span>
+                <span>08s · destroyed</span>
+              </div>
+            )}
             <button className="primary" onClick={() => void simulate()}>
               Launch simulation
             </button>

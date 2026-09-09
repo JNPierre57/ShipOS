@@ -24,6 +24,10 @@ export const eventTypes = [
   "elite.ship.fuel.low",
   "elite.exobiology.highValueDiscovery",
   "elite.exploration.remarkableBody",
+  "shipos.context.loadout.novel",
+  "shipos.broadcast.tension",
+  "shipos.broadcast.critical",
+  "shipos.broadcast.recovery",
 ] as const;
 export type EventType = (typeof eventTypes)[number];
 export interface DomainEvent {

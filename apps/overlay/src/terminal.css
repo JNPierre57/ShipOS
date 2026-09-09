@@ -1,0 +1,166 @@
+:root {
+  --os-plate: rgba(8, 17, 18, 0.94);
+  --os-text: #d7ddd0;
+  --os-rule: #65776d;
+  --os-amber: #d3ae69;
+  --os-green: #bacdaa;
+  --os-cyan: #8aaeb1;
+  --os-red: #db6156;
+}
+.card.terminal {
+  display: block;
+  min-height: 0;
+  gap: 0;
+  clip-path: none;
+  position: absolute;
+  left: 72px;
+  top: auto;
+  bottom: 92px;
+  width: 680px;
+  height: auto;
+  padding: 0;
+  border: 1px solid var(--os-rule);
+  border-left: 4px solid var(--os-green);
+  border-radius: 0;
+  background: var(--os-plate);
+  color: var(--os-text);
+  font:
+    22px/1.55 "SFMono-Regular",
+    Consolas,
+    "Liberation Mono",
+    monospace;
+  box-shadow: none;
+  backdrop-filter: none;
+  animation: os-arrive 260ms both;
+  animation-delay: var(--terminal-age);
+  transform: none;
+  overflow: hidden;
+}
+.terminal header {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--os-rule);
+  font-size: 12px;
+  letter-spacing: 1.5px;
+  color: var(--os-cyan);
+}
+.terminal-mark {
+  color: var(--os-green);
+}
+.terminal-status {
+  margin-left: auto;
+  font-size: 10px;
+}
+.terminal-lines {
+  padding: 22px 24px;
+}
+.terminal-lines > div {
+  animation: os-line 220ms both;
+  overflow-wrap: anywhere;
+}
+.terminal-lines > div > span {
+  color: var(--os-rule);
+  font-size: 13px;
+}
+.terminal-emphasis {
+  color: var(--os-green);
+}
+.terminal footer {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 8px 20px;
+  border-top: 1px solid var(--os-rule);
+  color: var(--os-rule);
+  font-size: 10px;
+  letter-spacing: 2px;
+}
+.terminal footer i {
+  flex: 1;
+  height: 3px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--os-rule) 0 2px,
+    transparent 2px 7px
+  );
+}
+.terminal.severity-warning {
+  border-left-color: var(--os-amber);
+}
+.terminal.severity-warning .terminal-emphasis {
+  color: var(--os-amber);
+}
+.terminal.severity-critical {
+  border-left-color: var(--os-red);
+}
+.terminal.severity-critical .terminal-emphasis,
+.terminal.severity-critical .terminal-mark {
+  color: var(--os-red);
+}
+.card.terminal-IncidentPanel {
+  width: 760px;
+}
+.card.terminal-FatalSequence {
+  left: calc(50% - 440px);
+  bottom: calc(50% - 120px);
+  width: 880px;
+  border-color: var(--os-red);
+  animation: os-fatal 650ms both;
+  animation-delay: var(--terminal-age);
+}
+.terminal-FatalSequence .terminal-lines {
+  padding: 34px;
+  font-size: 28px;
+}
+.terminal-RecoverySequence {
+  border-left-color: var(--os-cyan);
+}
+.card.terminal-SystemLine {
+  width: 660px;
+}
+.terminal[data-profile="COMPACT"] {
+  width: 540px;
+  font-size: 17px;
+}
+@keyframes os-line {
+  from {
+    opacity: 0;
+    transform: translateY(7px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes os-arrive {
+  from {
+    opacity: 0;
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+  }
+}
+@keyframes os-fatal {
+  0% {
+    opacity: 0;
+    transform: scaleY(0.04);
+  }
+  35% {
+    opacity: 1;
+    transform: scaleY(0.04);
+  }
+  100% {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .overlay:not([data-motion="full"]) .terminal,
+  .overlay:not([data-motion="full"]) .terminal-lines > div {
+    animation: none;
+  }
+}

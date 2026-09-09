@@ -1,0 +1,55 @@
+import type { CSSProperties } from "react";
+import type { PresentationDefinition } from "../../module-sdk/src/index.js";
+import type { VisualCard } from "./visuals.js";
+export type TerminalDefinition = NonNullable<
+  PresentationDefinition["terminal"]
+>;
+export function TerminalSequence({ card }: { card: VisualCard }) {
+  const terminal = card.terminal!;
+  const elapsed = Math.max(0, Date.now() - card.startedAt);
+  const lines = terminal.lines.slice(
+    0,
+    card.profile === "COMPACT"
+      ? 1
+      : terminal.primitive === "IncidentPanel"
+        ? 5
+        : 3,
+  );
+  return (
+    <section
+      className={`card terminal terminal-${terminal.primitive} severity-${terminal.severity}`}
+      data-primitive={terminal.primitive}
+      data-visual={card.visual}
+      data-profile={card.profile}
+      style={{ "--terminal-age": `-${elapsed}ms` } as CSSProperties}
+    >
+      <header>
+        <span className="terminal-mark">[ S / OS ]</span>
+        <span>{terminal.label}</span>
+        <span className="terminal-status">
+          {card.mode === "live" ? "LINK / ACTIVE" : card.mode.toUpperCase()}
+        </span>
+      </header>
+      <div className="terminal-lines">
+        {lines.map((line, i) => (
+          <div
+            key={i}
+            className={i === terminal.emphasis ? "terminal-emphasis" : ""}
+            style={
+              {
+                animationDelay: `${i * terminal.timingMs - elapsed}ms`,
+              } as CSSProperties
+            }
+          >
+            <span aria-hidden="true">{String(i + 1).padStart(2, "0")} / </span>
+            {line}
+          </div>
+        ))}
+      </div>
+      <footer>
+        <span>TELEMETRY / {terminal.severity.toUpperCase()}</span>
+        <i />
+      </footer>
+    </section>
+  );
+}

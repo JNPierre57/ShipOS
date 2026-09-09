@@ -85,6 +85,19 @@ export interface ModuleContext {
   worldState: DeepReadonly<WorldState>;
 }
 export interface PresentationDefinition {
+  terminal?: {
+    primitive:
+      | "SystemLine"
+      | "ConsoleStrip"
+      | "IncidentPanel"
+      | "FatalSequence"
+      | "RecoverySequence";
+    severity: "notice" | "warning" | "critical";
+    label: string;
+    lines: string[];
+    timingMs: number;
+    emphasis: number;
+  };
   visual?: "biology" | "orbital" | "fuel" | "integrity" | "signal-loss";
   detail?: string;
   metric?: string;

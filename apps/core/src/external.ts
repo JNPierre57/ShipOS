@@ -17,7 +17,7 @@ export function externalApi(
     ) => {
       if (event.sequence <= cursor) return;
       cursor = event.sequence;
-      if (matches(event.type, patterns)) {
+      if (event.type.startsWith("elite.") && matches(event.type, patterns)) {
         if (socket.bufferedAmount > 1024 * 1024) {
           socket.close(1013, "Slow consumer; reconnect with afterSequence");
           return;

@@ -103,6 +103,8 @@ export class Director {
     const now = this.clock.now(),
       age = Math.max(0, now - Date.parse(event.occurredAt)),
       budget = this.budget();
+    for (const [key, at] of this.semantics)
+      if (now - at > 3600000) this.semantics.delete(key);
     const components = {
       importance: p.importance * this.config.importanceWeight,
       urgency: p.urgency * this.config.urgencyWeight,
@@ -138,6 +140,28 @@ export class Director {
       return this.save(d);
     };
     if (age > p.ttlMs) return stop("expired", "ttl_expired");
+    if (event.type === "shipos.broadcast.critical") {
+      const hull = this.store
+        .recentEvents(Number.MAX_SAFE_INTEGER, 100)
+        .find(
+          (e) =>
+            e.type === "elite.ship.hull.critical" &&
+            now - Date.parse(e.emittedAt) < 30000,
+        );
+      if (hull) {
+        const decision = this.store.get<Decision>(
+          "director_decisions",
+          hull.id,
+        );
+        if (
+          decision &&
+          ["presented", "queued", "interrupted"].includes(decision.status)
+        ) {
+          d.coalescing = "hull_critical_precedence";
+          return stop("coalesced", "hull_critical_precedence");
+        }
+      }
+    }
     const semanticAt = this.semantics.get(event.semanticKey);
     if (semanticAt !== undefined && now - semanticAt < p.cooldownMs) {
       d.coalescing = "same_semantic_family";

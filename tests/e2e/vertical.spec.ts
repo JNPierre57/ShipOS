@@ -49,13 +49,9 @@ test("Gateway → durable inbox → Died detector → actual overlay, reconnect,
     type: "source_event",
     event: source({ event: "Died", timestamp }, 2),
   });
-  await expect(
-    page.getByRole("heading", { name: "SHIP DESTROYED" }),
-  ).toBeVisible();
+  await expect(page.getByText("VESSEL SIGNAL LOST")).toBeVisible();
   await page.reload();
-  await expect(
-    page.getByRole("heading", { name: "SHIP DESTROYED" }),
-  ).toBeVisible();
+  await expect(page.getByText("VESSEL SIGNAL LOST")).toBeVisible();
   server.run.engine.cancelAll();
   await expect(page.locator(".card")).toHaveCount(0);
   await page.close();

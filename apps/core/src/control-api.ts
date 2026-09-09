@@ -2,6 +2,7 @@ import { policySchema } from "./module-registry.js";
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { randomUUID } from "node:crypto";
+import { contextScenario, contextScenarioNames } from "./context-scenarios.js";
 import { eventTypes } from "../../../packages/contracts/src/index.js";
 import type { RunContext } from "./runtime.js";
 import {
@@ -16,6 +17,35 @@ export function controlApi(
   broadcast: (data: unknown) => void,
   backupRetention = 10,
 ) {
+  app.get("/api/v1/context", () => run.context.snapshot());
+  app.get("/api/v1/context/source/:id", (req) =>
+    run.store.source((req.params as { id: string }).id),
+  );
+  app.get("/api/v1/context/vehicles", () =>
+    (
+      run.store.db
+        .prepare(
+          "SELECT data FROM context_memory WHERE json_extract(id,'$[0]')='vehicle' ORDER BY rowid DESC LIMIT 50",
+        )
+        .all() as { data: string }[]
+    ).map((r) => JSON.parse(r.data)),
+  );
+  app.get("/api/v1/context/history", () => ({
+    transitions: (
+      run.store.db
+        .prepare(
+          "SELECT data FROM context_transitions ORDER BY rowid DESC LIMIT 200",
+        )
+        .all() as { data: string }[]
+    ).map((r) => JSON.parse(r.data)),
+    sessions: (
+      run.store.db
+        .prepare(
+          "SELECT data FROM context_sessions ORDER BY rowid DESC LIMIT 20",
+        )
+        .all() as { data: string }[]
+    ).map((r) => JSON.parse(r.data)),
+  }));
   app.get("/api/v1/events/:id", (req) => {
     const id = (req.params as { id: string }).id;
     const event = run.store.event(id);
@@ -91,23 +121,26 @@ export function controlApi(
         level: z.enum(["source", "domain", "presentation"]).default("source"),
         eventType: z.enum(eventTypes).default("elite.ship.destroyed"),
         scenario: z
-          .enum(["Everything Goes Wrong", "single"])
+          .enum(["Everything Goes Wrong", "single", ...contextScenarioNames])
           .default("Everything Goes Wrong"),
         speed: z.union([z.literal(1), z.literal("instant")]).default(1),
       })
       .parse(req.body ?? {});
     return isolated.create(
       "simulation",
-      p.scenario === "Everything Goes Wrong" && p.level === "source"
-        ? everythingGoesWrong()
-        : [
-            {
-              event: "Status",
-              Flags: 16777216,
-              timestamp: new Date().toISOString(),
-            },
-            { event: "Died", timestamp: new Date().toISOString() },
-          ].slice(p.level === "source" ? 0 : 1),
+      contextScenarioNames.some((name) => name === p.scenario) &&
+        p.level === "source"
+        ? contextScenario(p.scenario)
+        : p.scenario === "Everything Goes Wrong" && p.level === "source"
+          ? everythingGoesWrong()
+          : [
+              {
+                event: "Status",
+                Flags: 16777216,
+                timestamp: new Date().toISOString(),
+              },
+              { event: "Died", timestamp: new Date().toISOString() },
+            ].slice(p.level === "source" ? 0 : 1),
       p.speed,
       p.level,
       p.eventType,
@@ -144,6 +177,7 @@ export function controlApi(
     [...isolated.runs.values()].map((r) => ({
       ...r.result,
       world: r.context.world,
+      context: r.context.context.snapshot(),
       decisions: r.context.store.all("director_decisions"),
     })),
   );

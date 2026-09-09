@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 export interface VisualCard {
+  terminal?: import("./terminal.js").TerminalDefinition;
   id: string;
   title: string;
   subtitle: string;
