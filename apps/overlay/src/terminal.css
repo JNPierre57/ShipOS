@@ -137,11 +137,11 @@
 @keyframes os-arrive {
   from {
     opacity: 0;
-    clip-path: inset(0 100% 0 0);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
-    clip-path: inset(0 0 0 0);
+    transform: translateY(0);
   }
 }
 @keyframes os-fatal {
