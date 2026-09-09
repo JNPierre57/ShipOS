@@ -4,6 +4,9 @@ export const contextScenarioNames = [
   "Close Call",
   "Powerplay Combat",
   "New Build",
+  "Editorial Journey",
+  "System Return",
+  "Ship Reunion",
 ] as const;
 export function contextScenario(name: string): Record<string, unknown>[] {
   const rows: { at: number; payload: Record<string, unknown> }[] = [];
@@ -31,6 +34,41 @@ export function contextScenario(name: string): Record<string, unknown>[] {
     load(70, "int_engine_size5_class5");
     load(80, "int_engine_size5_class5");
     load(140, "int_engine_size5_class4");
+  } else if (name === "System Return") {
+    add(1, {
+      event: "FSDJump",
+      StarSystem: "Remembered Haven",
+      SystemAddress: 420,
+    });
+  } else if (name === "Ship Reunion") {
+    add(1, {
+      event: "Loadout",
+      Ship: "asp",
+      ShipID: 7,
+      ShipName: "Old Companion",
+      Modules: [{ Slot: "MainEngines", Item: "int_engine_size5_class4" }],
+    });
+  } else if (name === "Editorial Journey") {
+    for (const at of [1, 40, 80, 120, 160, 240, 300, 420])
+      add(at, {
+        event: "FSDJump",
+        StarSystem: `Survey ${at}`,
+        SystemAddress: 1000 + at,
+      });
+    add(520, {
+      event: "ScanOrganic",
+      ScanType: "Analyse",
+      Species: "$Codex_Ent_Bacterial_01_Name;",
+      Species_Localised: "Bacterium Aurasus",
+    });
+    add(630, { event: "MiningRefined", Type: "Platinum" });
+    add(740, { event: "MarketSell", Type: "Platinum", Count: 3 });
+    add(850, { event: "MissionCompleted", Name: "Fixture mission" });
+    add(960, {
+      event: "EngineerCraft",
+      Engineer: "Fixture",
+      Slot: "MainEngines",
+    });
   } else if (name === "Quiet Travel") {
     for (const at of [1, 40, 80])
       add(at, { event: "FSDJump", StarSystem: "Fixture", SystemAddress: 42 });

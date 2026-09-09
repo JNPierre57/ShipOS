@@ -56,6 +56,40 @@ export class IsolatedRuns {
       this.modules.map((m) => ({ ...m })),
       clock,
     );
+    // Only named demonstrations receive synthetic history. Live memory is never copied or changed.
+    if (scenario === "System Return" || scenario === "Ship Reunion") {
+      const old = start - 23 * 86400000 - 60000;
+      const history: Record<string, unknown>[] = [
+        { event: "LoadGame", Commander: "POC Fixture" },
+        {
+          event: "Location",
+          StarSystem: "Remembered Haven",
+          SystemAddress: 420,
+        },
+        { event: "Loadout", Ship: "asp", ShipID: 7, ShipName: "Old Companion" },
+        { event: "FSDJump", StarSystem: "Away", SystemAddress: 421 },
+        {
+          event: "Loadout",
+          Ship: "anaconda",
+          ShipID: 8,
+          ShipName: "Current Companion",
+        },
+        { event: "Shutdown" },
+      ];
+      history.forEach((p, i) =>
+        context.editorial.observe(
+          source(
+            { ...p, timestamp: new Date(old + i * 1000).toISOString() },
+            i + 10000,
+          ),
+          { commander: "POC Fixture" },
+          [],
+          "CALM",
+          old + i * 1000,
+          true,
+        ),
+      );
+    }
     context.engine.listeners.add((a) => {
       const action = { ...a, issuedAt: Date.now(), payload: { ...a.payload } };
       for (const key of ["startedAt", "endsAt"] as const)

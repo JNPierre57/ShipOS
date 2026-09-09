@@ -1,0 +1,3 @@
+CREATE TABLE editorial_memory(id TEXT PRIMARY KEY, data TEXT NOT NULL);
+CREATE TABLE editorial_state(id TEXT PRIMARY KEY, data TEXT NOT NULL);
+CREATE TABLE editorial_notes(id TEXT PRIMARY KEY, data TEXT NOT NULL);

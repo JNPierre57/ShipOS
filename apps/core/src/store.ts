@@ -13,6 +13,9 @@ import type {
   DomainEvent,
 } from "../../../packages/contracts/src/index.js";
 export type Table =
+  | "editorial_memory"
+  | "editorial_state"
+  | "editorial_notes"
   | "context_memory"
   | "context_transitions"
   | "context_sessions"

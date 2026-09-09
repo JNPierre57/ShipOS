@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
 import type { ContextState, Category } from "../../core/src/context.js";
 import type { ShipMemory } from "../../core/src/context-service.js";
-type Snapshot = ContextState & { ship: ShipMemory | null };
+import type { Editorial } from "../../core/src/editorial.js";
+type Snapshot = ContextState & {
+  ship: ShipMemory | null;
+  editorial?: ReturnType<Editorial["snapshot"]>;
+};
 export function ContextLab() {
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null),
     [category, setCategory] = useState<Category>("combat"),
@@ -57,7 +61,11 @@ export function ContextLab() {
       </header>
       <label>
         Inspect{" "}
-        <select value={runId} onChange={(e) => setRunId(e.target.value)}>
+        <select
+          aria-label="Inspect run"
+          value={runId}
+          onChange={(e) => setRunId(e.target.value)}
+        >
           <option value="live">Live · persistent memory</option>
           {runs.map((r) => (
             <option key={r.id} value={r.id}>
@@ -265,6 +273,54 @@ export function ContextLab() {
                 </details>
               ))}
             {!data.timeline.length && <p>No significant transition.</p>}
+          </section>
+          <section className="panel">
+            <h2>Editorial memory · why this alert?</h2>
+            <p>
+              First occurrences, observed returns and sustained progress.
+              Routine suggestions are spaced by at least 90 seconds; progress
+              needs new facts and four minutes. Danger takes precedence.
+            </p>
+            <p>
+              These are observations recorded by ShipOS, not your complete game
+              history. An eligible suggestion can still be held back by the
+              Director.
+            </p>
+            {!data.editorial?.notes.length && (
+              <p>No editorial observations yet.</p>
+            )}
+            {data.editorial?.notes.map((note) => (
+              <details key={note.id}>
+                <summary>
+                  {new Date(note.at).toLocaleTimeString()} · {note.family} ·{" "}
+                  {note.eligible ? "eligible" : "silent"} · {note.reason}
+                </summary>
+                <p>
+                  {(note.chosenLines ?? note.lines).join(" · ") ||
+                    "Collecting evidence before speaking."}
+                </p>
+                <pre>
+                  {JSON.stringify(
+                    {
+                      facts: note.facts,
+                      sourceIds: note.sourceIds,
+                      decision: note.decision,
+                    },
+                    null,
+                    2,
+                  )}
+                </pre>
+              </details>
+            ))}
+            <details>
+              <summary>Recent durable memories</summary>
+              {data.editorial?.memory.map((m, i) => (
+                <p key={i}>
+                  {m.kind} · {m.name} · {m.count} observations / {m.sessions}{" "}
+                  sessions · last seen {new Date(m.lastSeen).toLocaleString()}
+                </p>
+              ))}
+            </details>
           </section>
           <section className="panel">
             <h2>Session event census</h2>

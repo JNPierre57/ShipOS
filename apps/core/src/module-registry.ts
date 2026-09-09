@@ -178,8 +178,13 @@ export class Registry {
   }
   present(module: ShipModule, event: DomainEvent, profile: Profile) {
     return this.run(module, () =>
-      terminalPresentation(event, module.present(event, profile)),
+      editorialPresentation(
+        this.store,
+        event,
+        terminalPresentation(event, module.present(event, profile)),
+      ),
     );
   }
 }
 import { terminalPresentation } from "./terminal-presentations.js";
+import { editorialPresentation } from "./editorial.js";

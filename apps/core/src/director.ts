@@ -140,6 +140,16 @@ export class Director {
       return this.save(d);
     };
     if (age > p.ttlMs) return stop("expired", "ttl_expired");
+    const editorialId =
+      typeof event.payload.editorialNoteId === "string"
+        ? event.payload.editorialNoteId
+        : event.id;
+    const editorial = this.store.get<{ eligible: boolean; reason: string }>(
+      "editorial_notes",
+      editorialId,
+    );
+    if (editorial && !editorial.eligible)
+      return stop("suppressed", "editorial:" + editorial.reason);
     if (event.type === "shipos.broadcast.critical") {
       const hull = this.store
         .recentEvents(Number.MAX_SAFE_INTEGER, 100)

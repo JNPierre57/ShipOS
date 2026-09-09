@@ -19,6 +19,43 @@ test.beforeAll(async () => {
   await server.start();
 });
 test.afterAll(async () => server.close());
+test("historical return renders contextual animated lines and exposes its evidence in Context Lab", async ({
+  page,
+}) => {
+  await page.goto("http://127.0.0.1:48918/overlay/?motion=full");
+  await expect(page.locator("main")).toHaveAttribute("data-connected", "true");
+  const response = await page.request.post(
+    "http://127.0.0.1:48918/api/v1/simulation",
+    { data: { level: "source", scenario: "System Return", speed: 1 } },
+  );
+  expect(response.ok()).toBe(true);
+  await expect(page.getByText("KNOWN SYSTEM REACQUIRED")).toBeVisible();
+  await expect(page.getByText("Remembered Haven")).toBeVisible();
+  await expect(page.getByText(/LAST OBSERVED 23 DAYS AGO/)).toBeVisible();
+  expect(
+    await page
+      .locator(".terminal-lines > div")
+      .first()
+      .evaluate((el) => getComputedStyle(el).animationName),
+  ).not.toBe("none");
+  await page.goto("http://127.0.0.1:48918/control/?view=context");
+  await expect(
+    page.getByRole("heading", { name: "Editorial memory · why this alert?" }),
+  ).toBeVisible();
+  const runs = await (
+    await page.request.get("http://127.0.0.1:48918/api/v1/runs")
+  ).json();
+  const run =
+    runs.find((r: { scenario?: string }) => r.scenario === "System Return") ??
+    runs[0];
+  await page.getByLabel("Inspect run", { exact: true }).selectOption(run.id);
+  await expect(
+    page.getByText(/system-return · eligible · return_after_absence/),
+  ).toBeVisible();
+  await page.request.post("http://127.0.0.1:48918/api/v1/simulation", {
+    data: { level: "source", scenario: "Quiet Travel", speed: 1 },
+  });
+});
 test("source New Build displays twice, then Quiet Travel replaces and clears the preview", async ({
   page,
 }) => {

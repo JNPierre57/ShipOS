@@ -18,6 +18,7 @@ import { PresentationEngine } from "./presentation.js";
 import { Director } from "./director.js";
 import { ContextService } from "./context-service.js";
 import { contextModules } from "./context-modules.js";
+import { Editorial, editorialModule } from "./editorial.js";
 export function eventFactory(
   moduleId: string,
   candidate: Candidate,
@@ -60,6 +61,7 @@ export class RunContext {
   readonly externalPublishing: boolean;
   private processing = false;
   context: ContextService;
+  editorial: Editorial;
   private cancelTick: (() => void) | undefined;
   sessionId: string | null = null;
   constructor(
@@ -76,7 +78,7 @@ export class RunContext {
       store.get<WorldState>("world_state", "current") ?? initialWorld();
     this.modules = modules.map((m) => ({ ...m, policy: { ...m.policy } }));
     this.modules.push(
-      ...contextModules
+      ...[...contextModules, editorialModule]
         .filter(
           (m) =>
             !this.modules.some(
@@ -87,6 +89,8 @@ export class RunContext {
     );
     this.context = new ContextService(store, clock.now());
     this.context.restoreShip(this.world, clock.now());
+    this.editorial = new Editorial(store);
+    if (mode === "live") this.editorial.backfill();
     this.registry = new Registry(this.modules, store, failureThreshold);
     this.engine = new PresentationEngine(clock, store);
     this.director = new Director(clock, store, this.registry, this.engine);
@@ -131,6 +135,7 @@ export class RunContext {
           );
           if (this.sessionId) event.sessionId = this.sessionId;
           this.store.domain(event);
+          this.editorial.broadcast(event, transition!, this.world.commander);
         }
       })();
     } catch (error) {
@@ -175,7 +180,9 @@ export class RunContext {
             next.expedition = active?.id ?? null;
             for (const module of this.modules) {
               if (
-                contextModules.some((m) => m.manifest.id === module.manifest.id)
+                [...contextModules, editorialModule].some(
+                  (m) => m.manifest.id === module.manifest.id,
+                )
               )
                 continue;
               for (const candidate of this.registry.detect(
@@ -207,6 +214,29 @@ export class RunContext {
               );
               event.sessionId = sessionId;
               emitted.push(this.store.domain(event));
+            }
+            const editorial = this.editorial.observe(
+              source,
+              next,
+              emitted,
+              contextDraft.draft.phase,
+              this.clock.now(),
+            );
+            if (editorial.candidate) {
+              const event = eventFactory(
+                "editorial",
+                editorial.candidate,
+                source,
+                this.mode,
+                this.clock,
+              );
+              event.sessionId = sessionId;
+              emitted.push(this.store.domain(event));
+              if (editorial.note)
+                this.store.put("editorial_notes", editorial.note.id, {
+                  ...editorial.note,
+                  eventId: event.id,
+                });
             }
           }
           if (source.mode === "live")

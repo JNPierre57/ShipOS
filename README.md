@@ -57,6 +57,8 @@ Five public events: ship destroyed, critical hull, low fuel, high-value exobiolo
 
 ## Guides
 
+[Mémoire éditoriale adaptative et scénarios de test](docs/editorial-memory.md).
+
 [Choreographed FULL sequences](docs/choreography.md).
 
 [Event-specific visuals and rollback](docs/visual-presentations.md).

@@ -387,6 +387,9 @@ function App() {
                     "Close Call",
                     "Powerplay Combat",
                     "New Build",
+                    "Editorial Journey",
+                    "System Return",
+                    "Ship Reunion",
                   ].map((s) => (
                     <option key={s}>{s}</option>
                   ))}
@@ -405,6 +408,20 @@ function App() {
               <p>
                 Quiet Travel est volontairement silencieux : les déplacements
                 sont visibles dans Context Lab, sans alerte OBS.
+              </p>
+            )}
+            {level === "source" &&
+              ["System Return", "Ship Reunion"].includes(scenario) && (
+                <p>
+                  Cette démonstration utilise une mémoire fictive vieille de 23
+                  jours, sans modifier votre historique.
+                </p>
+              )}
+            {level === "source" && scenario === "Editorial Journey" && (
+              <p>
+                Voyage, progression, biologie, raffinage, commerce, missions et
+                ingénierie sur 16 minutes simulées. Utilisez ×20 pour un aperçu
+                rapide.
               </p>
             )}
             <p>

@@ -17,7 +17,10 @@ export function controlApi(
   broadcast: (data: unknown) => void,
   backupRetention = 10,
 ) {
-  app.get("/api/v1/context", () => run.context.snapshot());
+  app.get("/api/v1/context", () => ({
+    ...run.context.snapshot(),
+    editorial: run.editorial.snapshot(),
+  }));
   app.get("/api/v1/context/source/:id", (req) =>
     run.store.source((req.params as { id: string }).id),
   );
@@ -178,7 +181,10 @@ export function controlApi(
     [...isolated.runs.values()].map((r) => ({
       ...r.result,
       world: r.context.world,
-      context: r.context.context.snapshot(),
+      context: {
+        ...r.context.context.snapshot(),
+        editorial: r.context.editorial.snapshot(),
+      },
       decisions: r.context.store.all("director_decisions"),
     })),
   );

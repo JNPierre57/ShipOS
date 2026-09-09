@@ -28,6 +28,7 @@ export const eventTypes = [
   "shipos.broadcast.tension",
   "shipos.broadcast.critical",
   "shipos.broadcast.recovery",
+  "shipos.editorial.moment",
 ] as const;
 export type EventType = (typeof eventTypes)[number];
 export interface DomainEvent {
