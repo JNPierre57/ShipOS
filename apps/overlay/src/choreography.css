@@ -1035,28 +1035,30 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .choreography .stage-backdrop,
-  .choreography .stage-readout,
-  .choreography .detail,
-  .choreography .metric-block,
-  .choreography .tags {
+  .overlay:not([data-motion="full"]) .choreography .stage-backdrop,
+  .overlay:not([data-motion="full"]) .choreography .stage-readout,
+  .overlay:not([data-motion="full"]) .choreography .detail,
+  .overlay:not([data-motion="full"]) .choreography .metric-block,
+  .overlay:not([data-motion="full"]) .choreography .tags {
     opacity: 1;
     transform: none;
     clip-path: none;
     filter: none;
   }
-  .choreography .stage-instrument {
+  .overlay:not([data-motion="full"]) .choreography .stage-instrument {
     transform: translate(-260px, 34px) scale(0.64);
   }
-  .choreography .acquisition,
-  .choreography .stage-caption,
-  .choreography .specimen-particles,
-  .choreography .body-callouts,
-  .choreography .fracture,
-  .choreography .signal-shards {
+  .overlay:not([data-motion="full"]) .choreography .acquisition,
+  .overlay:not([data-motion="full"]) .choreography .stage-caption,
+  .overlay:not([data-motion="full"]) .choreography .specimen-particles,
+  .overlay:not([data-motion="full"]) .choreography .body-callouts,
+  .overlay:not([data-motion="full"]) .choreography .fracture,
+  .overlay:not([data-motion="full"]) .choreography .signal-shards {
     display: none;
   }
-  .visual-signal-loss.choreography .stage-instrument {
+  .overlay:not([data-motion="full"])
+    .visual-signal-loss.choreography
+    .stage-instrument {
     display: none;
   }
 }

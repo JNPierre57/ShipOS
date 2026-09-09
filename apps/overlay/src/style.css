@@ -551,17 +551,17 @@ h1 {
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .card,
-  .card *,
-  .global-pulse {
+  .overlay:not([data-motion="full"]) .card,
+  .overlay:not([data-motion="full"]) .card *,
+  .overlay:not([data-motion="full"]) .global-pulse {
     animation: none !important;
   }
-  .phase-acquire,
-  .scan-beam,
-  .signal-trace {
+  .overlay:not([data-motion="full"]) .phase-acquire,
+  .overlay:not([data-motion="full"]) .scan-beam,
+  .overlay:not([data-motion="full"]) .signal-trace {
     display: none;
   }
-  .global-pulse {
+  .overlay:not([data-motion="full"]) .global-pulse {
     opacity: 0.12;
   }
 }

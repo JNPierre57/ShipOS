@@ -176,3 +176,42 @@ test("natural FULL completion fades and removes every transient", async ({
   expect(server.run.engine.active.has(run.id)).toBe(false);
   expect(await page.evaluate(() => document.getAnimations().length)).toBe(0);
 });
+
+test("explicit OBS motion override animates even when the OS requests reduced motion", async ({
+  page,
+}) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("http://127.0.0.1:48916/overlay/?motion=full");
+  await expect(page.locator("main")).toHaveAttribute("data-connected", "true");
+  await expect(page.locator("main")).toHaveAttribute("data-motion", "full");
+  expect(
+    await page.evaluate(
+      () => matchMedia("(prefers-reduced-motion: reduce)").matches,
+    ),
+  ).toBe(true);
+  const module = modules[3]!;
+  const e = event(module.manifest.eventType);
+  const run = server.run.engine.start(e, "FULL", module.present(e, "FULL"));
+  await expect(page.locator(".card")).toHaveCount(1);
+  await expect(page.locator(".stage-readout")).toHaveCSS("opacity", "0");
+  expect(
+    await page.evaluate(
+      () =>
+        document.getAnimations().filter((a) => a.playState === "running")
+          .length,
+    ),
+  ).toBeGreaterThan(0);
+  const initial = await page
+    .locator(".stage-instrument")
+    .evaluate((el) => getComputedStyle(el).transform);
+  await expect
+    .poll(() =>
+      page
+        .locator(".stage-instrument")
+        .evaluate((el) => getComputedStyle(el).transform),
+    )
+    .not.toBe(initial);
+  server.run.engine.finish(run.id, "interrupted");
+  await expect(page.locator(".card,.global-pulse")).toHaveCount(0);
+  expect(await page.evaluate(() => document.getAnimations().length)).toBe(0);
+});

@@ -25,3 +25,13 @@ The full sequence footprint is larger: nominal 1000×430 in the lower-left regio
 The Mac launchd Core service is restarted after building. Refresh ShipOS's Browser Source cache in OBS and use Simulation → Presentation only. No Agent update is required.
 
 To restore the immediately preceding design, use the stop/build/start procedure in [visual-presentations](visual-presentations.md), substituting the tag `before-choreography-2026-09-09`. No data migration is included; do not delete the database. The still older original V1 is preserved as `v1.0.0-before-visuals`.
+
+## Static overlay with macOS Reduce Motion
+
+ShipOS follows `prefers-reduced-motion` by default. If macOS Reduce Motion is enabled, OBS may request this accessible static rendering too. To explicitly enable the broadcast animations while retaining the user's OS preference, set the ShipOS Browser Source URL to:
+
+```text
+http://127.0.0.1:48100/overlay/?motion=full
+```
+
+Refresh the Browser Source. This override applies only to that page; other overlay clients still follow the system preference. Removing the parameter restores automatic reduced-motion behavior. A Chromium regression test reproduces reduced motion and verifies that the explicit override restores progressing animations and still cleans up on cancellation.

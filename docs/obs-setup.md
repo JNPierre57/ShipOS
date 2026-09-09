@@ -18,3 +18,13 @@ WebAudio state is reported as READY, SUSPENDED, DEGRADED or DISCONNECTED. In a n
 Automated Chromium tests verify rendered cards, audio oscillator creation, cancellation, missing-asset degradation and reconnect. Native OBS smoke is not claimed executed by these tests.
 
 Optional OBS websocket v5 adapter is off by default. Enable through Core config, supply SHIPOS_OBS_PASSWORD privately, and explicitly list ShipOS-owned input names in allowedInputs. V1 only supports SetInputMute for allowed names via local API. It never edits scenes, transforms or foreign sources. Adapter unavailability is DEGRADED and leaves Browser Source functional.
+
+## Static overlay with macOS Reduce Motion
+
+ShipOS follows `prefers-reduced-motion` by default. If macOS Reduce Motion is enabled, OBS may request this accessible static rendering too. To explicitly enable the broadcast animations while retaining the user's OS preference, set the ShipOS Browser Source URL to:
+
+```text
+http://127.0.0.1:48100/overlay/?motion=full
+```
+
+Refresh the Browser Source. This override applies only to that page; other overlay clients still follow the system preference. Removing the parameter restores automatic reduced-motion behavior. A Chromium regression test reproduces reduced motion and verifies that the explicit override restores progressing animations and still cleans up on cancellation.

@@ -252,7 +252,15 @@ export function Overlay() {
     return () => clearTimeout(timer);
   }, [cards]);
   return (
-    <main className="overlay" data-connected={connected}>
+    <main
+      className="overlay"
+      data-connected={connected}
+      data-motion={
+        new URLSearchParams(location.search).get("motion") === "full"
+          ? "full"
+          : "system"
+      }
+    >
       <div id="PersistentLayer" />
       <div id="EventLayer">
         {cards.map((c) => (
