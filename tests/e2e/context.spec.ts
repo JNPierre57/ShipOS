@@ -19,6 +19,28 @@ test.beforeAll(async () => {
   await server.start();
 });
 test.afterAll(async () => server.close());
+test("source New Build displays twice, then Quiet Travel replaces and clears the preview", async ({
+  page,
+}) => {
+  await page.goto("http://127.0.0.1:48918/overlay/?motion=full");
+  await expect(page.locator("main")).toHaveAttribute("data-connected", "true");
+  for (let i = 0; i < 2; i++) {
+    const response = await page.request.post(
+      "http://127.0.0.1:48918/api/v1/simulation",
+      { data: { level: "source", scenario: "New Build", speed: 1 } },
+    );
+    expect(response.ok()).toBe(true);
+    await expect(
+      page.getByText("CONFIGURATION SIGNATURE UNKNOWN"),
+    ).toBeVisible();
+    const quiet = await page.request.post(
+      "http://127.0.0.1:48918/api/v1/simulation",
+      { data: { level: "source", scenario: "Quiet Travel", speed: 1 } },
+    );
+    expect(quiet.ok()).toBe(true);
+    await expect(page.locator(".card")).toHaveCount(0);
+  }
+});
 test("queued OS cue is invalidated by an exclusive fatal sequence", async ({
   page,
 }) => {

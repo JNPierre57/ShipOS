@@ -144,6 +144,7 @@ export function controlApi(
       p.speed,
       p.level,
       p.eventType,
+      p.scenario,
     );
   });
   app.post("/api/v1/replay", async (req) => {

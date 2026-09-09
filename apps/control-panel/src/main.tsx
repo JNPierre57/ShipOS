@@ -401,6 +401,16 @@ function App() {
                 <span>08s · destroyed</span>
               </div>
             )}
+            {level === "source" && scenario === "Quiet Travel" && (
+              <p>
+                Quiet Travel est volontairement silencieux : les déplacements
+                sont visibles dans Context Lab, sans alerte OBS.
+              </p>
+            )}
+            <p>
+              Chaque lancement remplace la simulation ou le replay précédent sur
+              l’overlay. Les résultats restent consultables dans l’historique.
+            </p>
             <button className="primary" onClick={() => void simulate()}>
               Launch simulation
             </button>

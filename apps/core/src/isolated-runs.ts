@@ -15,6 +15,7 @@ export interface RunResult {
   state: "running" | "completed" | "cancelled";
   events: DomainEvent[];
   diagnostics: string[];
+  scenario?: string;
 }
 export class IsolatedRuns {
   runs = new Map<
@@ -34,6 +35,7 @@ export class IsolatedRuns {
     speed: 1 | 5 | 20 | "instant" = 1,
     level: "source" | "domain" | "presentation" = "source",
     eventType = "elite.ship.destroyed",
+    scenario?: string,
   ) {
     const store = new Store(":memory:");
     await store.migrate();
@@ -43,7 +45,9 @@ export class IsolatedRuns {
     const sourceEpoch = validTimes.length
       ? Math.min(...validTimes)
       : Date.parse("2026-01-01T00:00:00Z");
-    const start = mode === "replay" ? sourceEpoch : Date.now();
+    // Domain TTL and context evidence must share the fixture's epoch in both modes.
+    // Only presentation deadlines are translated to browser wall time below.
+    const start = sourceEpoch;
     const clock =
       mode === "replay" ? new ReplayClock(start) : new VirtualClock(start);
     const context = new RunContext(
@@ -68,6 +72,7 @@ export class IsolatedRuns {
       state: "running",
       events: [],
       diagnostics: [],
+      scenario,
     };
     let timer: ReturnType<typeof setTimeout> | undefined;
     let lastWall = Date.now();
@@ -133,6 +138,10 @@ export class IsolatedRuns {
       context.director.stop();
       if (result.state === "running") result.state = "cancelled";
     };
+    // One preview owns the shared overlay. Keep old results for inspection,
+    // but cancel their timers, queued cues and active audio before replacing it.
+    for (const previous of this.runs.values())
+      if (previous.result.state === "running") previous.cancel();
     this.runs.set(result.id, {
       result,
       context,
