@@ -89,6 +89,13 @@ export const highValue: ShipModule = {
   },
   present(event, profile) {
     return {
+      visual: "biology",
+      detail: String(event.payload.name ?? "Biological discovery"),
+      metric: Number(
+        event.payload.estimatedBaseValueCredits ?? 0,
+      ).toLocaleString("en-US"),
+      metricLabel: "CR · ESTIMATED BASE VALUE",
+      tags: ["ANALYSIS COMPLETE", "BONUS NOT INCLUDED"],
       title: "VALUABLE BIOLOGY",
       subtitle: `${String(event.payload.name)} · Estimated base ${Number(event.payload.estimatedBaseValueCredits).toLocaleString("en-US")} CR`,
       accent: "#86dec2",

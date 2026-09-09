@@ -76,6 +76,27 @@ export const remarkableBody: ShipModule = {
   },
   present(event, profile) {
     return {
+      visual: "orbital",
+      detail: String(event.payload.name ?? "Unidentified body"),
+      tags: ((event.payload.reasons as string[]) ?? []).map(
+        (reason) =>
+          ({
+            "star.black_hole": "BLACK HOLE",
+            "star.neutron": "NEUTRON STAR",
+            "planet.earth_like": "EARTH-LIKE WORLD",
+            "planet.ammonia_world": "AMMONIA WORLD",
+            "planet.terraformable": "TERRAFORMABLE",
+            "planet.high_gravity": "HIGH GRAVITY",
+            "planet.many_biological_signals": "RICH BIOLOGICAL SIGNALS",
+            "record.new": "NEW PERSONAL RECORD",
+            preview: "DISCOVERY PREVIEW",
+          })[reason] ?? reason,
+      ),
+      metric:
+        typeof event.payload.gravityG === "number"
+          ? event.payload.gravityG.toFixed(2) + " g"
+          : undefined,
+      metricLabel: "SURFACE GRAVITY",
       title: "REMARKABLE BODY",
       subtitle: `${String(event.payload.name)} · ${(event.payload.reasons as string[]).join(" / ")}`,
       accent: "#85bfff",

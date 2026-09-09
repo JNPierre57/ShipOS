@@ -48,8 +48,18 @@ export const hullCritical: ShipModule = {
       },
     ];
   },
-  present(_event, profile) {
+  present(event, profile) {
     return {
+      visual: "integrity",
+      detail: "STRUCTURAL ALERT",
+      metric:
+        typeof event.payload.health === "number"
+          ? Math.round(event.payload.health * 100) + "%"
+          : "≤ 20%",
+      metricLabel: "LAST OBSERVED HULL INTEGRITY",
+      gauge:
+        typeof event.payload.health === "number" ? event.payload.health : 0.2,
+      tags: ["CRITICAL DAMAGE", "EVASIVE ACTION"],
       title: "HULL CRITICAL",
       subtitle: "Structural integrity below observable 20% threshold",
       accent: "#ff8759",

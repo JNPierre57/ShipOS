@@ -48,6 +48,11 @@ export const shipDestroyed: ShipModule = {
   },
   present(_event, profile) {
     return {
+      visual: "signal-loss",
+      detail: "SIGNAL LOST",
+      metric: "OFFLINE",
+      metricLabel: "VESSEL TELEMETRY",
+      tags: ["EMERGENCY PROTOCOL"],
       title: "SHIP DESTROYED",
       subtitle: "Signal lost · Emergency protocol",
       accent: "#ff5b62",

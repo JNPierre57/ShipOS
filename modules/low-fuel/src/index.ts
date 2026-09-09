@@ -42,6 +42,12 @@ export const lowFuel: ShipModule = {
   },
   present(_event, profile) {
     return {
+      visual: "fuel",
+      detail: "LOW RESERVE",
+      metric: "< 25%",
+      metricLabel: "LOW-FUEL FLAG · NOT A LIVE GAUGE",
+      gauge: 0.25,
+      tags: ["PLAN YOUR NEXT SCOOP"],
       title: "LOW FUEL",
       subtitle: "Fuel reserve below 25% · Plan your next scoop",
       accent: "#efca77",

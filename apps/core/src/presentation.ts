@@ -67,6 +67,7 @@ export class PresentationEngine {
     this.emit(run, "overlay.show", {
       ...definition,
       profile,
+      startedAt: run.startedAt,
       endsAt: run.endsAt,
       mode: run.mode,
     });

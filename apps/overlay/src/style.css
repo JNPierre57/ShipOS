@@ -5,86 +5,312 @@ body {
   margin: 0;
   background: transparent;
   color: #edf2f7;
-  font-family: Arial, sans-serif;
+  font-family: "Avenir Next", "Segoe UI", Arial, sans-serif;
 }
 .overlay {
   position: relative;
   width: 100vw;
   height: 100vh;
   overflow: hidden;
+  pointer-events: none;
 }
 .card {
   position: absolute;
   left: 6%;
   bottom: 12%;
-  min-width: 420px;
-  max-width: 75%;
-  padding: 28px 36px;
+  width: min(760px, 86vw);
+  min-height: 262px;
+  display: flex;
+  align-items: center;
+  gap: 26px;
+  padding: 26px 34px 30px 22px;
+  color: var(--accent);
   background: linear-gradient(
-    110deg,
-    rgba(9, 17, 27, 0.96),
-    rgba(11, 22, 33, 0.88)
+    115deg,
+    rgba(8, 17, 26, 0.97),
+    rgba(8, 17, 26, 0.9) 70%,
+    rgba(8, 17, 26, 0.76)
   );
-  border-left: 3px solid;
-  box-shadow: 0 14px 60px #0007;
-  animation: enter 0.28s ease-out;
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+  border-left: 3px solid var(--accent);
+  clip-path: polygon(
+    0 0,
+    calc(100% - 22px) 0,
+    100% 22px,
+    100% 100%,
+    18px 100%,
+    0 calc(100% - 18px)
+  );
+  isolation: isolate;
+  animation: card-timeline var(--duration) linear var(--offset) both;
+}
+.card-grid {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.045;
+  background-image:
+    linear-gradient(currentColor 1px, transparent 1px),
+    linear-gradient(90deg, currentColor 1px, transparent 1px);
+  background-size: 24px 24px;
+  mask-image: linear-gradient(90deg, #000, transparent);
+}
+.instrument-wrap {
+  width: 190px;
+  flex: 0 0 190px;
+  text-align: center;
+}
+.instrument {
+  width: 100%;
+  overflow: visible;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+}
+.instrument .guide {
+  opacity: 0.24;
+  stroke-width: 1;
+}
+.instrument .ticks,
+.instrument .brackets {
+  opacity: 0.7;
+}
+.instrument circle:not(.guide):not(.planet) {
+  fill: currentColor;
+  stroke: none;
+}
+.instrument-caption {
+  display: block;
+  margin-top: 4px;
+  font:
+    9px ui-monospace,
+    monospace;
+  letter-spacing: 0.22em;
+  opacity: 0.7;
+}
+.event-copy {
+  flex: 1;
+  min-width: 0;
 }
 .eyebrow {
-  letter-spacing: 0.3em;
-  font-size: 11px;
-  color: #a4b4c4;
+  color: #a2b7c7;
+  font:
+    10px ui-monospace,
+    monospace;
+  letter-spacing: 0.22em;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.status-light {
+  width: 5px;
+  height: 5px;
+  background: var(--accent);
+  border-radius: 50%;
+}
+.divider {
+  opacity: 0.4;
 }
 h1 {
-  font-size: 38px;
-  letter-spacing: 0.08em;
+  font-size: 22px;
+  line-height: 1.15;
+  letter-spacing: 0.15em;
+  font-weight: 600;
   margin: 14px 0 10px;
 }
-p {
-  color: #bcc8d4;
-  font-size: 17px;
+.detail {
+  color: #f0f5fa;
+  font-size: 25px;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+  font-weight: 500;
 }
-.compact {
-  padding: 16px 24px;
+.metric-block {
+  margin-top: 17px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
-.compact h1 {
-  font-size: 24px;
+.metric-block strong {
+  font-size: 36px;
+  line-height: 1;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.metric-block > span {
+  color: #94abba;
+  font:
+    9px ui-monospace,
+    monospace;
+  letter-spacing: 0.16em;
+}
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 15px;
+}
+.tags > span {
+  padding: 5px 7px;
+  border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+  font:
+    9px ui-monospace,
+    monospace;
+  letter-spacing: 0.08em;
+}
+.sequence-label {
+  position: relative;
+  height: 10px;
+  margin-top: 17px;
+  color: #8a9ead;
+  font:
+    8px ui-monospace,
+    monospace;
+  letter-spacing: 0.17em;
+}
+.sequence-label > span {
+  position: absolute;
+  inset: 0;
 }
 .life {
-  height: 2px;
   position: absolute;
   bottom: 0;
   left: 0;
   width: 100%;
+  height: 2px;
+  background: var(--accent);
   transform-origin: left;
-  animation: life linear forwards;
+  animation: life var(--duration) linear var(--offset) both;
 }
-@keyframes enter {
-  from {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
+.reveal {
+  animation: reveal var(--duration) linear var(--offset) both;
 }
-@keyframes life {
-  to {
-    transform: scaleX(0);
-  }
+.metric-block {
+  animation-name: metric-reveal;
 }
-@media (prefers-reduced-motion: reduce) {
-  .card {
-    animation: none;
-  }
-  .life {
-    animation: none;
-  }
+.phase-acquire {
+  animation: acquiring var(--duration) linear var(--offset) both;
+}
+.phase-resolved {
+  animation: resolved var(--duration) linear var(--offset) both;
+}
+.scan-beam {
+  animation: scanning var(--duration) linear var(--offset) both;
+  filter: drop-shadow(0 0 5px currentColor);
+}
+.helix {
+  stroke-dasharray: 350;
+  animation: decode var(--duration) linear var(--offset) both;
+}
+.helix .rung {
+  opacity: 0.45;
+}
+.orbit {
+  transform-origin: 100px 100px;
+  animation: orbit var(--duration) ease-out var(--offset) both;
+}
+.planet {
+  fill: color-mix(in srgb, var(--accent) 8%, transparent);
+}
+.gauge-track {
+  stroke-width: 9;
+  opacity: 0.14;
+}
+.gauge-value {
+  stroke-width: 9;
+  animation: gauge-reveal var(--duration) linear var(--offset) both;
+}
+.hull-outline {
+  stroke-width: 2;
+}
+.visual-integrity {
+  background: linear-gradient(
+    115deg,
+    rgba(35, 14, 16, 0.97),
+    rgba(17, 15, 22, 0.92)
+  );
+}
+.visual-integrity .instrument-wrap {
+  animation: impact var(--duration) linear var(--offset) both;
+}
+.visual-signal-loss {
+  background: linear-gradient(
+    115deg,
+    rgba(26, 12, 20, 0.98),
+    rgba(10, 13, 21, 0.94)
+  );
+}
+.visual-signal-loss .detail {
+  font-size: 34px;
+  letter-spacing: 0.14em;
+}
+.signal-trace {
+  stroke-width: 2.5;
+  animation: signal-break var(--duration) linear var(--offset) both;
+}
+.flatline {
+  animation: flatline var(--duration) linear var(--offset) both;
+  opacity: 0.5;
+}
+.visual-signal-loss .instrument-caption {
+  color: #8d7c89;
+}
+.global-pulse {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  box-shadow: inset 0 0 90px color-mix(in srgb, var(--accent) 18%, transparent);
+  border: 2px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  animation: edge-warning var(--duration) linear var(--offset) both;
+}
+.fx-signal-loss {
+  animation-name: loss-edge;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent 0 5px,
+    rgba(255, 90, 100, 0.015) 5px 6px
+  );
+}
+.global-pulse.compact {
+  display: none;
+}
+.compact {
+  width: min(560px, 86vw);
+  min-height: 130px;
+  padding: 18px 24px;
+  gap: 16px;
+}
+.compact .instrument-wrap {
+  width: 76px;
+  flex-basis: 76px;
+}
+.compact .instrument-caption,
+.compact .tags,
+.compact .sequence-label,
+.compact .metricLabel {
+  display: none;
+}
+.compact h1 {
+  font-size: 16px;
+  margin: 9px 0;
+}
+.compact .detail {
+  font-size: 19px;
+}
+.compact .metric-block {
+  margin-top: 9px;
+}
+.compact .metric-block strong {
+  font-size: 24px;
+}
+.compact .reveal {
+  animation-name: compact-reveal;
 }
 .card[data-slot="secondary"] {
   left: auto;
   right: 6%;
-  bottom: 12%;
 }
 .card[data-slot="top"] {
   top: 6%;
@@ -114,17 +340,247 @@ p {
   top: 40%;
   bottom: auto;
 }
-.global-pulse {
+.sr-only {
   position: absolute;
-  inset: 0;
-  pointer-events: none;
-  animation: pulse-in 0.35s ease-out;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
 }
-@keyframes pulse-in {
-  from {
+@keyframes card-timeline {
+  0% {
     opacity: 0;
+    transform: translateX(-24px);
+  }
+  5%,
+  92% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+}
+@keyframes life {
+  from {
+    transform: scaleX(1);
   }
   to {
+    transform: scaleX(0);
+  }
+}
+@keyframes reveal {
+  0%,
+  9% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  18%,
+  100% {
     opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes metric-reveal {
+  0%,
+  20% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  30%,
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes compact-reveal {
+  0% {
+    opacity: 0;
+  }
+  8%,
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes acquiring {
+  0%,
+  18% {
+    opacity: 1;
+  }
+  24%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes resolved {
+  0%,
+  24% {
+    opacity: 0;
+  }
+  30%,
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes decode {
+  0% {
+    stroke-dashoffset: 350;
+    opacity: 0.2;
+  }
+  25%,
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+@keyframes scanning {
+  0% {
+    transform: translateY(-65px);
+    opacity: 0;
+  }
+  4% {
+    opacity: 1;
+  }
+  22% {
+    transform: translateY(65px);
+    opacity: 1;
+  }
+  27%,
+  100% {
+    transform: translateY(65px);
+    opacity: 0;
+  }
+}
+@keyframes orbit {
+  from {
+    transform: rotate(-90deg);
+  }
+  45%,
+  100% {
+    transform: rotate(0);
+  }
+}
+@keyframes gauge-reveal {
+  0% {
+    opacity: 0;
+  }
+  10%,
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes impact {
+  0%,
+  4% {
+    transform: translateX(0);
+  }
+  5% {
+    transform: translateX(-5px);
+  }
+  7% {
+    transform: translateX(3px);
+  }
+  9%,
+  100% {
+    transform: translateX(0);
+  }
+}
+@keyframes signal-break {
+  0%,
+  7% {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+  15% {
+    opacity: 0.5;
+    transform: scaleY(0.3);
+  }
+  20%,
+  100% {
+    opacity: 0;
+    transform: scaleY(0);
+  }
+}
+@keyframes flatline {
+  0%,
+  15% {
+    opacity: 0;
+  }
+  22%,
+  100% {
+    opacity: 0.5;
+  }
+}
+@keyframes edge-warning {
+  0% {
+    opacity: 0;
+  }
+  6% {
+    opacity: 1;
+  }
+  18% {
+    opacity: 0.15;
+  }
+  30% {
+    opacity: 0.65;
+  }
+  50%,
+  90% {
+    opacity: 0.15;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes loss-edge {
+  0% {
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
+  }
+  30% {
+    opacity: 0.25;
+  }
+  85% {
+    opacity: 0.12;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .card *,
+  .global-pulse {
+    animation: none !important;
+  }
+  .phase-acquire,
+  .scan-beam,
+  .signal-trace {
+    display: none;
+  }
+  .global-pulse {
+    opacity: 0.12;
+  }
+}
+@media (max-width: 850px) {
+  .card {
+    gap: 16px;
+    padding: 20px;
+  }
+  .instrument-wrap {
+    width: 130px;
+    flex-basis: 130px;
+  }
+  .detail {
+    font-size: 21px;
+  }
+  h1 {
+    font-size: 18px;
+  }
+  .metric-block strong {
+    font-size: 28px;
   }
 }

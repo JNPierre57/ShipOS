@@ -1,3 +1,4 @@
+import { EventVisual, timeline, type VisualCard } from "./visuals.js";
 import { useEffect, useState } from "react";
 import type { PresentationAction } from "../../contracts/src/index.js";
 export const assetCatalog: Record<
@@ -105,19 +106,8 @@ export class AudioEngine {
     for (const id of [...this.nodes.keys()]) this.stop(id);
   }
 }
-interface Card {
-  id: string;
-  title: string;
-  subtitle: string;
-  accent: string;
-  profile: string;
-  mode: string;
-  endsAt: number;
-  slot: string;
-  effect: boolean;
-}
 export function Overlay() {
-  const [cards, setCards] = useState<Card[]>([]);
+  const [cards, setCards] = useState<VisualCard[]>([]);
   const [connected, setConnected] = useState(false);
   const [audio] = useState(() => new AudioEngine());
   useEffect(() => {
@@ -140,6 +130,20 @@ export function Overlay() {
         setCards((old) => [
           ...old.filter((c) => c.id !== a.presentationRunId),
           {
+            visual: String(a.payload.visual ?? "orbital"),
+            detail:
+              typeof a.payload.detail === "string" ? a.payload.detail : "",
+            metric:
+              typeof a.payload.metric === "string" ? a.payload.metric : "",
+            metricLabel: String(a.payload.metricLabel ?? ""),
+            tags: Array.isArray(a.payload.tags)
+              ? a.payload.tags.filter((t): t is string => typeof t === "string")
+              : [],
+            gauge: typeof a.payload.gauge === "number" ? a.payload.gauge : 0,
+            startedAt:
+              typeof a.payload.startedAt === "number"
+                ? a.payload.startedAt
+                : Date.now(),
             id: a.presentationRunId,
             title: String(a.payload.title),
             subtitle: String(a.payload.subtitle),
@@ -188,6 +192,7 @@ export function Overlay() {
             id: string;
             profile: string;
             definition: Record<string, unknown>;
+            startedAt: number;
             endsAt: number;
             mode: string;
           }[];
@@ -207,6 +212,7 @@ export function Overlay() {
               payload: {
                 ...r.definition,
                 profile: r.profile,
+                startedAt: r.startedAt,
                 endsAt: r.endsAt,
                 mode: r.mode,
               },
@@ -250,27 +256,7 @@ export function Overlay() {
       <div id="PersistentLayer" />
       <div id="EventLayer">
         {cards.map((c) => (
-          <article
-            key={c.id}
-            data-run-id={c.id}
-            data-slot={c.slot}
-            className={"card " + c.profile.toLowerCase()}
-            style={{ borderColor: c.accent }}
-          >
-            <span className="eyebrow">
-              SHIPOS /{" "}
-              {c.mode === "live" ? "FLIGHT SYSTEMS" : c.mode.toUpperCase()}
-            </span>
-            <h1 style={{ color: c.accent }}>{c.title}</h1>
-            <p>{c.subtitle}</p>
-            <div
-              className="life"
-              style={{
-                background: c.accent,
-                animationDuration: Math.max(0, c.endsAt - Date.now()) + "ms",
-              }}
-            />
-          </article>
+          <EventVisual key={c.id} card={c} />
         ))}
       </div>
       <div id="GlobalFxLayer">
@@ -279,8 +265,8 @@ export function Overlay() {
           .map((c) => (
             <div
               key={c.id}
-              className="global-pulse"
-              style={{ boxShadow: `inset 0 0 80px ${c.accent}35` }}
+              className={`global-pulse fx-${c.visual} ${c.profile.toLowerCase()}`}
+              style={timeline(c)}
             />
           ))}
       </div>

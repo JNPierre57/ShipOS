@@ -85,6 +85,12 @@ export interface ModuleContext {
   worldState: DeepReadonly<WorldState>;
 }
 export interface PresentationDefinition {
+  visual?: "biology" | "orbital" | "fuel" | "integrity" | "signal-loss";
+  detail?: string;
+  metric?: string;
+  metricLabel?: string;
+  tags?: string[];
+  gauge?: number;
   title: string;
   subtitle: string;
   accent: string;

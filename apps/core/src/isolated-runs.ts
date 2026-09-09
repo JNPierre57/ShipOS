@@ -54,14 +54,12 @@ export class IsolatedRuns {
     );
     context.engine.listeners.add((a) => {
       const action = { ...a, issuedAt: Date.now(), payload: { ...a.payload } };
-      if (typeof action.payload.endsAt === "number")
-        action.payload.endsAt =
-          Date.now() +
-          Math.max(
-            0,
-            (action.payload.endsAt - clock.now()) /
-              (speed === "instant" ? 1 : speed),
-          );
+      for (const key of ["startedAt", "endsAt"] as const)
+        if (typeof action.payload[key] === "number")
+          action.payload[key] =
+            action.issuedAt +
+            (action.payload[key] - clock.now()) /
+              (speed === "instant" ? 1 : speed);
       for (const fn of this.listeners) fn(action);
     });
     const result: RunResult = {
@@ -184,6 +182,8 @@ export class IsolatedRuns {
     return [...this.runs.values()].flatMap((r) =>
       r.context.engine.snapshot().map((run) => ({
         ...run,
+        startedAt:
+          Date.now() + (run.startedAt - r.context.clock.now()) / r.speed,
         endsAt:
           Date.now() +
           Math.max(0, run.endsAt - r.context.clock.now()) / r.speed,

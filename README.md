@@ -55,6 +55,8 @@ Five public events: ship destroyed, critical hull, low fuel, high-value exobiolo
 
 ## Guides
 
+[Event-specific visuals and rollback](docs/visual-presentations.md).
+
 [Démarrage automatique Mac et Shadow](docs/autostart.md).
 
 **Installation sur Shadow depuis GitHub : [guide pas à pas en français](docs/demarrage-shadow.md).**
