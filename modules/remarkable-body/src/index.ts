@@ -100,7 +100,7 @@ export const remarkableBody: ShipModule = {
       title: "REMARKABLE BODY",
       subtitle: `${String(event.payload.name)} · ${(event.payload.reasons as string[]).join(" / ")}`,
       accent: "#85bfff",
-      durationMs: profile === "COMPACT" ? 3500 : 7000,
+      durationMs: profile === "COMPACT" ? 3500 : 11000,
       slot: "primary",
       layers: ["EventLayer"],
       audioAsset: "audio.alert.remarkable-body",

@@ -1,0 +1,1119 @@
+/* FULL runs have an acquisition stage, a moving instrument, then a resolved readout.
+   All tracks share the persisted start time. No repeating or idle animation. */
+.card.full.choreography {
+  width: min(1000px, 90vw);
+  height: 430px;
+  min-height: 0;
+  padding: 0;
+  display: block;
+  background: none;
+  border: 0;
+  clip-path: none;
+  overflow: visible;
+  bottom: 12%;
+  left: 5%;
+  animation-name: sequence-envelope;
+}
+.choreography * {
+  animation-duration: var(--duration);
+  animation-delay: var(--offset);
+  animation-fill-mode: both;
+  animation-timing-function: linear;
+}
+.stage-backdrop {
+  position: absolute;
+  inset: 22px 0 0;
+  background: linear-gradient(
+    100deg,
+    rgba(4, 14, 23, 0.96),
+    rgba(5, 17, 26, 0.87) 68%,
+    transparent
+  );
+  border-left: 2px solid var(--accent);
+  clip-path: polygon(0 0, 95% 0, 100% 30px, 100% 100%, 0 100%);
+  animation-name: backdrop-unfold;
+}
+.stage-rail {
+  position: absolute;
+  top: 10px;
+  left: 0;
+  width: 95%;
+  height: 2px;
+  display: flex;
+  gap: 10px;
+  transform-origin: left;
+  animation-name: rail-deploy;
+}
+.stage-rail span {
+  background: var(--accent);
+  height: 2px;
+  flex: 1;
+  opacity: 0.5;
+}
+.stage-rail span:first-child {
+  flex: 0 0 90px;
+  opacity: 1;
+}
+.acquisition {
+  position: absolute;
+  left: 250px;
+  top: 15px;
+  width: 320px;
+  height: 320px;
+  animation-name: acquisition-exit;
+}
+.acquisition-ring {
+  position: absolute;
+  inset: 0;
+  border: 1px solid var(--accent);
+  border-radius: 50%;
+  animation-name: ring-expand;
+}
+.ring-two {
+  inset: -22px;
+  border-style: dashed;
+  opacity: 0.35;
+  animation-name: ring-contract;
+}
+.acquisition-cross {
+  position: absolute;
+  background: var(--accent);
+  opacity: 0.4;
+}
+.cross-horizontal {
+  width: 480px;
+  height: 1px;
+  top: 160px;
+  left: -80px;
+  animation-name: cross-sweep;
+}
+.cross-vertical {
+  height: 360px;
+  width: 1px;
+  left: 160px;
+  top: -20px;
+  animation-name: cross-sweep;
+}
+.stage-instrument {
+  position: absolute;
+  left: 250px;
+  top: 15px;
+  width: 320px;
+  height: 320px;
+  transform-origin: center;
+  animation-name: instrument-dock;
+}
+.stage-instrument > .instrument {
+  width: 320px;
+  height: 320px;
+  filter: drop-shadow(
+    0 0 5px color-mix(in srgb, var(--accent) 25%, transparent)
+  );
+}
+.choreography .instrument-caption {
+  display: none;
+}
+.choreography .helix {
+  animation-name: specimen-construct;
+}
+.choreography .scan-beam {
+  stroke-width: 3;
+  animation-name: specimen-scan;
+}
+.specimen-particles {
+  position: absolute;
+  inset: 0;
+}
+.specimen-particles i {
+  position: absolute;
+  left: 158px;
+  top: 158px;
+  width: 5px;
+  height: 5px;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  animation-name: particle-converge;
+}
+.choreography .orbit {
+  animation-name: orbital-survey;
+}
+.choreography .planet {
+  animation-name: planet-resolve;
+  transform-origin: 100px 100px;
+}
+.body-callouts {
+  position: absolute;
+  inset: 0;
+  font:
+    11px "Segoe UI",
+    sans-serif;
+  letter-spacing: 0.12em;
+}
+.callout {
+  position: absolute;
+  width: 245px;
+  left: 235px;
+  top: 50px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  animation-name: callout-one;
+}
+.callout .leader {
+  height: 1px;
+  background: var(--accent);
+  width: 60px;
+  flex-shrink: 0;
+}
+.callout > span:last-child {
+  background: rgba(3, 15, 25, 0.94);
+  padding: 8px;
+}
+.callout-1 {
+  top: 150px;
+  left: -210px;
+  flex-direction: row-reverse;
+  animation-name: callout-two;
+}
+.callout-2 {
+  top: 235px;
+  animation-name: callout-three;
+}
+.stage-caption {
+  position: absolute;
+  left: 150px;
+  top: 355px;
+  width: 520px;
+  text-align: center;
+  font:
+    14px "Segoe UI",
+    sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.3em;
+}
+.stage-caption > span {
+  position: absolute;
+  inset: 0;
+}
+.act-one {
+  animation-name: act-one;
+}
+.act-two {
+  animation-name: act-two;
+}
+.stage-readout {
+  position: absolute;
+  left: 300px;
+  right: 35px;
+  top: 73px;
+  animation-name: readout-arrive;
+}
+.choreography h1 {
+  font-size: 24px;
+  margin-top: 17px;
+  letter-spacing: 0.16em;
+}
+.choreography .detail {
+  font-size: 32px;
+  animation-name: identity-resolve;
+}
+.choreography .metric-block {
+  margin-top: 22px;
+  animation-name: value-resolve;
+}
+.choreography .metric-block strong {
+  font-size: 44px;
+}
+.choreography .metric-block > span {
+  font:
+    11px "Segoe UI",
+    sans-serif;
+  letter-spacing: 0.14em;
+}
+.choreography .tags {
+  margin-top: 23px;
+  animation-name: tags-resolve;
+}
+.choreography .tags > span {
+  font:
+    11px "Segoe UI",
+    sans-serif;
+  padding: 7px 9px;
+}
+.readout-rule {
+  height: 1px;
+  background: var(--accent);
+  opacity: 0.4;
+  margin-top: 22px;
+  transform-origin: left;
+  animation-name: rule-draw;
+}
+.choreography .life {
+  animation-name: stage-life;
+}
+.reserve-segments {
+  position: absolute;
+  bottom: -15px;
+  left: 0;
+  width: 320px;
+  display: flex;
+  gap: 8px;
+}
+.reserve-segments i {
+  width: 33px;
+  height: 8px;
+  background: var(--accent);
+  animation-name: reserve-assemble;
+  transform: translateY(calc(var(--segment) * 5px));
+}
+.reserve-segments i:nth-child(n + 3) {
+  background: none;
+  border: 1px solid var(--accent);
+  opacity: 0.25;
+}
+.choreography .gauge-value {
+  animation-name: warning-dial;
+}
+.fracture {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  fill: rgba(255, 95, 75, 0.05);
+  stroke: currentColor;
+  stroke-width: 2;
+  animation-name: fracture-visible;
+}
+.fragment-left {
+  animation-name: fracture-left;
+}
+.fragment-right {
+  animation-name: fracture-right;
+}
+.fault-line {
+  stroke-dasharray: 280;
+  animation-name: fault-propagate;
+}
+.visual-integrity.choreography .stage-instrument > .instrument {
+  animation-name: damaged-hud;
+}
+.visual-integrity.choreography .acquisition-ring {
+  animation-name: shockwave;
+  border-width: 3px;
+}
+.visual-integrity.choreography .ring-two {
+  animation-name: shockwave-two;
+}
+.visual-integrity.choreography .stage-instrument {
+  animation-name: impact-dock;
+}
+.choreography .signal-trace {
+  transform-origin: 100px 100px;
+  animation-name: telemetry-break;
+}
+.choreography .flatline {
+  animation-name: telemetry-flatline;
+}
+.signal-shards {
+  position: absolute;
+  inset: 0;
+  animation-name: shards-visible;
+}
+.signal-shards span {
+  position: absolute;
+  inset: 15px;
+  border: 1px solid var(--accent);
+  clip-path: polygon(0 0, 48% 0, 35% 40%, 0 50%);
+  animation-name: shard-one;
+}
+.signal-shards span:nth-child(2) {
+  clip-path: polygon(52% 0, 100% 0, 100% 50%, 65% 40%);
+  animation-name: shard-two;
+}
+.signal-shards span:nth-child(3) {
+  clip-path: polygon(0 52%, 35% 45%, 48% 100%, 0 100%);
+  animation-name: shard-three;
+}
+.signal-shards span:nth-child(4) {
+  clip-path: polygon(65% 45%, 100% 52%, 100% 100%, 52% 100%);
+  animation-name: shard-four;
+}
+.visual-signal-loss.choreography .stage-instrument {
+  animation-name: telemetry-extinguish;
+}
+.visual-signal-loss.choreography .stage-backdrop {
+  animation-name: loss-backdrop;
+}
+.visual-signal-loss.choreography .stage-readout {
+  left: 75px;
+  top: 88px;
+  animation-name: final-message;
+}
+.visual-signal-loss.choreography .detail {
+  font-size: 52px;
+  letter-spacing: 0.17em;
+  animation-name: final-message;
+}
+.visual-signal-loss.choreography .metric-block,
+.visual-signal-loss.choreography .tags {
+  animation-name: final-message;
+}
+.visual-signal-loss.choreography .acquisition {
+  animation-name: loss-acquisition;
+}
+.visual-signal-loss.choreography .stage-rail {
+  animation-name: loss-rail;
+}
+@keyframes sequence-envelope {
+  0% {
+    opacity: 0;
+  }
+  3%,
+  92% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes backdrop-unfold {
+  0%,
+  29% {
+    opacity: 0;
+    transform: scaleX(0.05);
+  }
+  42%,
+  92% {
+    opacity: 1;
+    transform: scaleX(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scaleX(0.9);
+  }
+}
+@keyframes rail-deploy {
+  0% {
+    transform: scaleX(0);
+  }
+  12%,
+  90% {
+    transform: scaleX(1);
+  }
+  100% {
+    transform: scaleX(0);
+  }
+}
+@keyframes ring-expand {
+  0% {
+    transform: scale(0.2);
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
+  }
+  23% {
+    transform: scale(1.13);
+    opacity: 0.3;
+  }
+  38%,
+  100% {
+    transform: scale(1.2);
+    opacity: 0;
+  }
+}
+@keyframes ring-contract {
+  0% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.55;
+  }
+  25% {
+    transform: scale(1);
+    opacity: 0.3;
+  }
+  38%,
+  100% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}
+@keyframes acquisition-exit {
+  0%,
+  30% {
+    opacity: 1;
+  }
+  40%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes cross-sweep {
+  0% {
+    transform: scale(0);
+  }
+  10% {
+    transform: scale(1);
+  }
+  28% {
+    transform: scale(0.85);
+  }
+  36%,
+  100% {
+    transform: scale(0);
+  }
+}
+@keyframes instrument-dock {
+  0% {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  8% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  28% {
+    transform: translate(0, 0) scale(1);
+  }
+  42%,
+  92% {
+    opacity: 1;
+    transform: translate(-260px, 34px) scale(0.64);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-260px, 34px) scale(0.58);
+  }
+}
+@keyframes specimen-construct {
+  0% {
+    stroke-dashoffset: 350;
+    opacity: 0;
+  }
+  8% {
+    opacity: 0.5;
+  }
+  28%,
+  100% {
+    stroke-dashoffset: 0;
+    opacity: 1;
+  }
+}
+@keyframes specimen-scan {
+  0% {
+    transform: translateY(-70px);
+    opacity: 0;
+  }
+  6% {
+    opacity: 1;
+  }
+  16% {
+    transform: translateY(70px);
+  }
+  27% {
+    transform: translateY(-70px);
+    opacity: 1;
+  }
+  32%,
+  100% {
+    transform: translateY(-70px);
+    opacity: 0;
+  }
+}
+@keyframes particle-converge {
+  0% {
+    opacity: 0;
+    transform: translate(var(--dx), var(--dy)) rotate(var(--twist));
+  }
+  6% {
+    opacity: 1;
+  }
+  26% {
+    opacity: 0.9;
+    transform: translate(0, 0) rotate(180deg);
+  }
+  30%,
+  100% {
+    opacity: 0;
+    transform: scale(0);
+  }
+}
+@keyframes orbital-survey {
+  0% {
+    transform: rotate(-150deg);
+    opacity: 0;
+  }
+  8% {
+    opacity: 1;
+  }
+  35% {
+    transform: rotate(70deg);
+  }
+  65%,
+  100% {
+    transform: rotate(110deg);
+  }
+}
+@keyframes planet-resolve {
+  0% {
+    transform: scale(0.1);
+    opacity: 0;
+  }
+  16% {
+    transform: scale(1.1);
+    opacity: 1;
+  }
+  24%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@keyframes callout-one {
+  0%,
+  12% {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  18%,
+  28% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  36%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes callout-two {
+  0%,
+  20% {
+    opacity: 0;
+    transform: translateX(30px);
+  }
+  26%,
+  32% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  39%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes callout-three {
+  0%,
+  26% {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  32%,
+  36% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  42%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes act-one {
+  0%,
+  3% {
+    opacity: 0;
+  }
+  8%,
+  23% {
+    opacity: 1;
+  }
+  30%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes act-two {
+  0%,
+  24% {
+    opacity: 0;
+  }
+  29%,
+  34% {
+    opacity: 1;
+  }
+  41%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes readout-arrive {
+  0%,
+  33% {
+    opacity: 0;
+    transform: translateX(70px);
+  }
+  44%,
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+@keyframes identity-resolve {
+  0%,
+  38% {
+    opacity: 0;
+    clip-path: inset(0 100% 0 0);
+  }
+  49%,
+  100% {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+  }
+}
+@keyframes value-resolve {
+  0%,
+  49% {
+    opacity: 0;
+    transform: translateY(24px);
+    filter: blur(5px);
+  }
+  60%,
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+@keyframes tags-resolve {
+  0%,
+  55% {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  65%,
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes rule-draw {
+  0%,
+  40% {
+    transform: scaleX(0);
+  }
+  64%,
+  100% {
+    transform: scaleX(1);
+  }
+}
+@keyframes stage-life {
+  0%,
+  40% {
+    opacity: 0;
+    transform: scaleX(1);
+  }
+  44% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: scaleX(0);
+  }
+}
+@keyframes reserve-assemble {
+  0% {
+    opacity: 0;
+    transform: translateY(calc(50px + var(--segment) * 12px));
+  }
+  24% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  28% {
+    transform: scaleY(1.7);
+  }
+  33%,
+  100% {
+    transform: scaleY(1);
+  }
+}
+@keyframes warning-dial {
+  0%,
+  8% {
+    opacity: 0;
+    stroke-width: 1;
+  }
+  20% {
+    opacity: 1;
+    stroke-width: 12;
+  }
+  30%,
+  100% {
+    opacity: 1;
+    stroke-width: 9;
+  }
+}
+@keyframes fracture-visible {
+  0%,
+  5% {
+    opacity: 0;
+  }
+  8%,
+  27% {
+    opacity: 1;
+  }
+  38%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes fracture-left {
+  0%,
+  8% {
+    transform: translate(0, 0);
+  }
+  27%,
+  100% {
+    transform: translate(-42px, 18px) rotate(-6deg);
+  }
+}
+@keyframes fracture-right {
+  0%,
+  8% {
+    transform: translate(0, 0);
+  }
+  27%,
+  100% {
+    transform: translate(42px, -12px) rotate(6deg);
+  }
+}
+@keyframes fault-propagate {
+  0%,
+  5% {
+    stroke-dashoffset: 280;
+  }
+  18%,
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes damaged-hud {
+  0%,
+  24% {
+    opacity: 0;
+  }
+  38%,
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes shockwave {
+  0%,
+  7% {
+    opacity: 0;
+    transform: scale(0.25);
+  }
+  9% {
+    opacity: 0.9;
+  }
+  27%,
+  100% {
+    opacity: 0;
+    transform: scale(1.7);
+  }
+}
+@keyframes shockwave-two {
+  0%,
+  14% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  16% {
+    opacity: 0.5;
+  }
+  33%,
+  100% {
+    opacity: 0;
+    transform: scale(1.8);
+  }
+}
+@keyframes impact-dock {
+  0% {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  7% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  9% {
+    transform: translateX(-18px);
+  }
+  12% {
+    transform: translateX(10px);
+  }
+  16%,
+  28% {
+    transform: translateX(0);
+  }
+  42%,
+  92% {
+    opacity: 1;
+    transform: translate(-260px, 34px) scale(0.64);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-260px, 34px) scale(0.58);
+  }
+}
+@keyframes telemetry-break {
+  0% {
+    opacity: 0;
+    transform: scaleY(0.2);
+  }
+  6% {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+  12% {
+    transform: translateX(-15px) scaleY(0.3);
+  }
+  17% {
+    transform: translateX(12px) scaleY(1.3);
+  }
+  23% {
+    transform: translateX(0) scaleY(0.02);
+    opacity: 1;
+  }
+  27%,
+  100% {
+    opacity: 0;
+    transform: scaleY(0);
+  }
+}
+@keyframes telemetry-flatline {
+  0%,
+  22% {
+    opacity: 0;
+    transform: scaleX(1);
+  }
+  25% {
+    opacity: 1;
+  }
+  31%,
+  100% {
+    opacity: 0;
+    transform: scaleX(0);
+  }
+}
+@keyframes shards-visible {
+  0%,
+  9% {
+    opacity: 0;
+  }
+  14% {
+    opacity: 0.8;
+  }
+  32%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes shard-one {
+  0%,
+  10% {
+    transform: translate(0, 0);
+  }
+  32%,
+  100% {
+    transform: translate(-90px, -50px) rotate(-20deg);
+  }
+}
+@keyframes shard-two {
+  0%,
+  10% {
+    transform: translate(0, 0);
+  }
+  32%,
+  100% {
+    transform: translate(90px, -50px) rotate(20deg);
+  }
+}
+@keyframes shard-three {
+  0%,
+  10% {
+    transform: translate(0, 0);
+  }
+  32%,
+  100% {
+    transform: translate(-70px, 65px) rotate(-15deg);
+  }
+}
+@keyframes shard-four {
+  0%,
+  10% {
+    transform: translate(0, 0);
+  }
+  32%,
+  100% {
+    transform: translate(70px, 65px) rotate(15deg);
+  }
+}
+@keyframes telemetry-extinguish {
+  0% {
+    opacity: 0;
+  }
+  5%,
+  27% {
+    opacity: 1;
+  }
+  33%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes loss-acquisition {
+  0%,
+  20% {
+    opacity: 1;
+  }
+  31%,
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes loss-rail {
+  0% {
+    transform: scaleX(0);
+    opacity: 1;
+  }
+  12%,
+  25% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+  32%,
+  44% {
+    transform: scaleX(0);
+    opacity: 0;
+  }
+  53%,
+  92% {
+    transform: scaleX(0.8);
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes loss-backdrop {
+  0%,
+  43% {
+    opacity: 0;
+    transform: scaleY(0.02);
+  }
+  51%,
+  92% {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes final-message {
+  0%,
+  45% {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  54%,
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .choreography .stage-backdrop,
+  .choreography .stage-readout,
+  .choreography .detail,
+  .choreography .metric-block,
+  .choreography .tags {
+    opacity: 1;
+    transform: none;
+    clip-path: none;
+    filter: none;
+  }
+  .choreography .stage-instrument {
+    transform: translate(-260px, 34px) scale(0.64);
+  }
+  .choreography .acquisition,
+  .choreography .stage-caption,
+  .choreography .specimen-particles,
+  .choreography .body-callouts,
+  .choreography .fracture,
+  .choreography .signal-shards {
+    display: none;
+  }
+  .visual-signal-loss.choreography .stage-instrument {
+    display: none;
+  }
+}
+@media (max-width: 1100px) {
+  .card.full.choreography {
+    transform-origin: bottom left;
+    scale: 0.7;
+    width: 1000px;
+  }
+}
+
+.visual-signal-loss.choreography .life {
+  animation-name: loss-life;
+}
+@keyframes loss-life {
+  0%,
+  45% {
+    opacity: 0;
+    transform: scaleX(1);
+  }
+  54% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: scaleX(0);
+  }
+}
+.card.choreography[data-slot="secondary"] {
+  left: auto;
+  right: 5%;
+}
+.card.choreography[data-slot="top"] {
+  top: 6%;
+  bottom: auto;
+  left: 5%;
+}
+.card.choreography[data-slot="bottom"] {
+  bottom: 6%;
+  left: 5%;
+}
+.card.choreography[data-slot="left"] {
+  left: 4%;
+  bottom: 40%;
+}
+.card.choreography[data-slot="right"] {
+  left: auto;
+  right: 4%;
+  bottom: 40%;
+}
+.card.choreography[data-slot="hud"] {
+  top: 4%;
+  bottom: auto;
+  left: 4%;
+}
+.card.choreography[data-slot="globalFx"] {
+  left: 25%;
+  top: 30%;
+  bottom: auto;
+}

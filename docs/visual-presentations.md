@@ -1,5 +1,7 @@
 # Event-specific visual sequences — 2026-09-09
 
+This describes the first illustrated release. See [choreography](choreography.md) for the subsequent multi-act FULL sequences and changed durations.
+
 The previous production source is preserved in the annotated Git tag `v1.0.0-before-visuals` (commit 5c517d6), pushed before any visual edits. New visual delivery is tagged `visuals-2026-09-09`.
 
 | Event | FULL sequence |

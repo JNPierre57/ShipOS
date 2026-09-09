@@ -56,7 +56,7 @@ export const shipDestroyed: ShipModule = {
       title: "SHIP DESTROYED",
       subtitle: "Signal lost · Emergency protocol",
       accent: "#ff5b62",
-      durationMs: profile === "COMPACT" ? 3500 : 8000,
+      durationMs: profile === "COMPACT" ? 3500 : 10500,
       slot: "primary",
       layers: ["EventLayer", "GlobalFxLayer"],
       audioAsset: "audio.alert.ship-destroyed",

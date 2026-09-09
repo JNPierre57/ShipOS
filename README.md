@@ -55,6 +55,8 @@ Five public events: ship destroyed, critical hull, low fuel, high-value exobiolo
 
 ## Guides
 
+[Choreographed FULL sequences](docs/choreography.md).
+
 [Event-specific visuals and rollback](docs/visual-presentations.md).
 
 [Démarrage automatique Mac et Shadow](docs/autostart.md).

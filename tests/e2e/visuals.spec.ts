@@ -6,6 +6,7 @@ import { createServer } from "../../apps/core/src/server.js";
 import { coreSchema } from "../../apps/core/src/config.js";
 import { modules } from "../../apps/core/src/modules.js";
 import type { DomainEvent } from "../../packages/contracts/src/index.js";
+test.use({ video: { mode: "on", size: { width: 1280, height: 720 } } });
 let server: Awaited<ReturnType<typeof createServer>>;
 test.beforeAll(async () => {
   server = await createServer(
@@ -44,10 +45,14 @@ function event(type: DomainEvent["type"]): DomainEvent {
 test("five visual sequences, resumed timeline, compact and reduced motion, cancellation leaves no animations", async ({
   page,
 }) => {
-  test.setTimeout(60000);
+  test.setTimeout(90000);
   await page.setViewportSize({ width: 1920, height: 1080 });
   await page.goto("http://127.0.0.1:48916/overlay");
   await expect(page.locator("main")).toHaveAttribute("data-connected", "true");
+  await page.addStyleTag({
+    content:
+      "body { background: radial-gradient(ellipse at 70% 20%, #172638, #050911 70%); }",
+  });
   for (const module of modules) {
     const e = event(module.manifest.eventType);
     const definition = module.present(e, "FULL");
@@ -57,7 +62,31 @@ test("five visual sequences, resumed timeline, compact and reduced motion, cance
       definition.visual!,
     );
     await expect(page.locator(".detail")).toHaveText(definition.detail!);
-    await page.waitForTimeout(2300);
+    await page.waitForTimeout(definition.durationMs * 0.16);
+    const initialPosition = await page
+      .locator(".stage-instrument")
+      .boundingBox();
+    await expect(page.locator(".stage-readout")).toHaveCSS("opacity", "0");
+    await page.screenshot({
+      path: `test-results/choreography-${definition.visual}-acquire.png`,
+    });
+    await page.waitForTimeout(definition.durationMs * 0.26);
+    if (definition.visual === "signal-loss") {
+      await expect(page.locator(".stage-instrument")).toHaveCSS("opacity", "0");
+      await expect(page.locator(".stage-readout")).toHaveCSS("opacity", "0");
+    }
+    await page.screenshot({
+      path: `test-results/choreography-${definition.visual}-transition.png`,
+    });
+    await page.waitForTimeout(definition.durationMs * 0.26);
+    if (definition.visual !== "signal-loss") {
+      const finalPosition = await page
+        .locator(".stage-instrument")
+        .boundingBox();
+      expect(Math.abs(finalPosition!.x - initialPosition!.x)).toBeGreaterThan(
+        150,
+      );
+    }
     await expect
       .poll(() =>
         page
@@ -70,6 +99,10 @@ test("five visual sequences, resumed timeline, compact and reduced motion, cance
     });
     if (definition.visual === "biology") {
       await page.reload();
+      await page.addStyleTag({
+        content:
+          "body { background: radial-gradient(ellipse at 70% 20%, #172638, #050911 70%); }",
+      });
       await expect(page.locator(".metric-block strong")).toHaveText(
         "19,010,800",
       );
@@ -121,4 +154,25 @@ test("five visual sequences, resumed timeline, compact and reduced motion, cance
   await page.screenshot({ path: "test-results/visual-compact.png" });
   server.run.engine.finish(compact.id, "interrupted");
   await expect(page.locator(".card,.global-pulse")).toHaveCount(0);
+});
+
+test("natural FULL completion fades and removes every transient", async ({
+  page,
+}) => {
+  await page.goto("http://127.0.0.1:48916/overlay");
+  await expect(page.locator("main")).toHaveAttribute("data-connected", "true");
+  const module = modules[2]!;
+  const e = event(module.manifest.eventType);
+  const definition = module.present(e, "FULL");
+  const run = server.run.engine.start(e, "FULL", definition);
+  await expect(page.locator(".card")).toHaveCount(1);
+  await page.waitForTimeout(definition.durationMs * 0.96);
+  expect(
+    await page
+      .locator(".card")
+      .evaluate((el) => Number(getComputedStyle(el).opacity)),
+  ).toBeLessThan(0.8);
+  await expect(page.locator(".card,.global-pulse")).toHaveCount(0);
+  expect(server.run.engine.active.has(run.id)).toBe(false);
+  expect(await page.evaluate(() => document.getAnimations().length)).toBe(0);
 });

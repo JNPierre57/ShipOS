@@ -99,7 +99,7 @@ export const highValue: ShipModule = {
       title: "VALUABLE BIOLOGY",
       subtitle: `${String(event.payload.name)} · Estimated base ${Number(event.payload.estimatedBaseValueCredits).toLocaleString("en-US")} CR`,
       accent: "#86dec2",
-      durationMs: profile === "COMPACT" ? 3500 : 7000,
+      durationMs: profile === "COMPACT" ? 3500 : 10000,
       slot: "primary",
       layers: ["EventLayer"],
       audioAsset: "audio.alert.high-value-exobiology",

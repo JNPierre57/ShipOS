@@ -63,7 +63,7 @@ export const hullCritical: ShipModule = {
       title: "HULL CRITICAL",
       subtitle: "Structural integrity below observable 20% threshold",
       accent: "#ff8759",
-      durationMs: profile === "COMPACT" ? 3000 : 6000,
+      durationMs: profile === "COMPACT" ? 3000 : 8000,
       slot: "primary",
       layers: ["EventLayer", "GlobalFxLayer"],
       audioAsset: "audio.alert.hull-critical",

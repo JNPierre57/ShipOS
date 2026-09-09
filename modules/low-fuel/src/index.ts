@@ -51,7 +51,7 @@ export const lowFuel: ShipModule = {
       title: "LOW FUEL",
       subtitle: "Fuel reserve below 25% · Plan your next scoop",
       accent: "#efca77",
-      durationMs: profile === "COMPACT" ? 3000 : 5000,
+      durationMs: profile === "COMPACT" ? 3000 : 7000,
       slot: "primary",
       layers: ["EventLayer"],
       audioAsset: "audio.alert.low-fuel",

@@ -133,6 +133,7 @@ function Instrument({ card }: { card: VisualCard }) {
   );
 }
 export function EventVisual({ card }: { card: VisualCard }) {
+  if (card.profile === "FULL") return <Choreography card={card} />;
   return (
     <article
       data-run-id={card.id}
@@ -192,6 +193,128 @@ export function EventVisual({ card }: { card: VisualCard }) {
               : "OBSERVATION CONFIRMED"}
           </span>
         </div>
+      </div>
+      <div className="life" />
+    </article>
+  );
+}
+
+function Choreography({ card }: { card: VisualCard }) {
+  const loss = card.visual === "signal-loss";
+  const words: Record<string, [string, string]> = {
+    biology: ["RESOLVING BIOSIGNATURE", "ANALYSIS COMPLETE"],
+    orbital: ["RESOLVING BODY", "REMARKABLE DISCOVERY"],
+    fuel: ["RESERVE WARNING", "PLAN YOUR NEXT SCOOP"],
+    integrity: ["STRUCTURAL IMPACT", "DAMAGE ASSESSED"],
+    "signal-loss": ["TELEMETRY INTERRUPTED", "SIGNAL LOST"],
+  };
+  const labels = words[card.visual] ?? words.orbital!;
+  return (
+    <article
+      data-run-id={card.id}
+      data-slot={card.slot}
+      data-visual={card.visual}
+      className={`card full choreography visual-${card.visual}`}
+      style={timeline(card)}
+    >
+      <div className="stage-backdrop" aria-hidden="true" />
+      <div className="stage-rail" aria-hidden="true">
+        <span />
+        <span />
+        <span />
+      </div>
+      <div className="acquisition" aria-hidden="true">
+        <div className="acquisition-ring ring-one" />
+        <div className="acquisition-ring ring-two" />
+        <div className="acquisition-cross cross-horizontal" />
+        <div className="acquisition-cross cross-vertical" />
+      </div>
+      <div className="stage-instrument" aria-hidden="true">
+        <Instrument card={card} />
+        {card.visual === "biology" && (
+          <div className="specimen-particles">
+            {Array.from({ length: 12 }, (_, i) => (
+              <i
+                key={i}
+                style={
+                  {
+                    "--dx": `${Math.cos((i * Math.PI) / 6) * 220}px`,
+                    "--dy": `${Math.sin((i * Math.PI) / 6) * 160}px`,
+                    "--twist": `${i * 30}deg`,
+                  } as CSSProperties
+                }
+              />
+            ))}
+          </div>
+        )}
+        {card.visual === "orbital" && (
+          <div className="body-callouts">
+            {(card.tags.length ? card.tags : ["OBSERVATION"])
+              .slice(0, 3)
+              .map((tag, i) => (
+                <div key={tag} className={`callout callout-${i}`}>
+                  <span className="leader" />
+                  <span>{tag}</span>
+                </div>
+              ))}
+          </div>
+        )}
+        {card.visual === "fuel" && (
+          <div className="reserve-segments">
+            {Array.from({ length: 8 }, (_, i) => (
+              <i key={i} style={{ "--segment": i } as CSSProperties} />
+            ))}
+          </div>
+        )}
+        {card.visual === "integrity" && (
+          <svg viewBox="0 0 320 320" className="fracture" aria-hidden="true">
+            <path
+              className="fragment fragment-left"
+              d="M160 32L106 80L76 225L140 200L158 253L145 165L168 135L145 110Z"
+            />
+            <path
+              className="fragment fragment-right"
+              d="M160 32L214 80L244 225L180 200L158 253L145 165L168 135L145 110Z"
+            />
+            <path
+              className="fault-line"
+              d="M160 32L145 110L168 135L145 165L158 253"
+            />
+          </svg>
+        )}
+        {loss && (
+          <div className="signal-shards">
+            <span />
+            <span />
+            <span />
+            <span />
+          </div>
+        )}
+      </div>
+      <div className="stage-caption">
+        <span className="act-one">{labels[0]}</span>
+        <span className="act-two">{labels[1]}</span>
+      </div>
+      <div className="stage-readout">
+        <div className="eyebrow">
+          <span className="status-light" />
+          SHIPOS /{" "}
+          {card.mode === "live" ? "FLIGHT SYSTEMS" : card.mode.toUpperCase()}
+        </div>
+        <h1>{card.title}</h1>
+        <div className="detail">{card.detail || card.subtitle}</div>
+        {card.metric && (
+          <div className="metric-block">
+            <strong>{card.metric}</strong>
+            <span>{card.metricLabel}</span>
+          </div>
+        )}
+        <div className="tags">
+          {card.tags.map((t) => (
+            <span key={t}>{t}</span>
+          ))}
+        </div>
+        <div className="readout-rule" />
       </div>
       <div className="life" />
     </article>
