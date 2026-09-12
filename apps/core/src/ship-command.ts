@@ -84,6 +84,7 @@ export class ShipCommands {
   };
   private freshGeneration: number | null = null;
   private freshStatus: string | null = null;
+  private statusValidated = false;
   private requests = new Map<string, number>();
   private lastRequest: number | null = null;
   constructor(readonly run: RunContext) {
@@ -102,6 +103,14 @@ export class ShipCommands {
     ) {
       this.freshGeneration = this.link().generation;
       this.freshStatus = source.id;
+      const at = Date.parse(source.sourceTimestamp ?? source.observedAt);
+      const age = this.run.clock.now() - at;
+      // Status.json is change-driven: validate freshness on arrival, not
+      // repeatedly while an unchanged ship remains in the same session.
+      this.statusValidated =
+        Number.isFinite(at) &&
+        age >= -2000 &&
+        age <= this.config().freshnessTTL;
     }
     this.revalidate();
   }
@@ -130,11 +139,7 @@ export class ShipCommands {
     )
       return "awaiting_fresh_telemetry";
     const at = Date.parse(t.statusAt ?? "");
-    if (
-      !Number.isFinite(at) ||
-      at > now + 2000 ||
-      now - at > this.config().freshnessTTL
-    )
+    if (!Number.isFinite(at) || at > now + 2000 || !this.statusValidated)
       return "telemetry_stale";
     if (world.vehicleContext !== "mainShip") return "not_in_main_ship";
     if (

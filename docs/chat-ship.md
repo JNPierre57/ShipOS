@@ -20,9 +20,9 @@ L’utilisateur a précisé qu’Elite est toujours fermé avant de passer à un
 - Mort et résurrection : configuration et Status à reconstruire, sans exiger artificiellement un nouveau LoadGame.
 - Contrôle à la demande, lors de la sortie de file, à la reconnexion overlay et pendant l’affichage. La vérification temporelle réutilise le tick de contexte existant à 1 Hz ; aucun polling spécifique.
 
-**Après un crash sans Shutdown, des données peuvent rester admissibles jusqu’à l’expiration du TTL de 45 secondes.** Le retrait d’une fiche sur expiration intervient au tick suivant. La présence d’Elite en arrière-plan pendant l’utilisation d’un autre jeu n’est pas détectée ; elle est exclue par la règle d’utilisation convenue. Ce n’est pas une garantie de premier plan.
+La fraîcheur de 45 secondes est vérifiée à la réception du Status. Une fois validé, cet état reste admissible pendant la session et la connexion courantes : Elite ne réécrit pas régulièrement Status.json lorsqu'on reste à quai. Shutdown, déconnexion et changement de vaisseau continuent d'invalider la disponibilité. **Un crash du jeu sans Shutdown alors que l'agent reste connecté n'est pas détecté par ce mécanisme.** La présence d’Elite en arrière-plan pendant l’utilisation d’un autre jeu n’est pas détectée ; elle est exclue par la règle d’utilisation convenue. Ce n’est pas une garantie de premier plan.
 
-Les observations de la vérification accompagnée sont consignées dans [l’étude préalable](chat-ship-feasibility.md). Nous avons constaté des Status espacés d’environ 24 secondes dans la situation testée ; cela motive la marge de 45 secondes.
+Le 12 septembre, le Loadout du Cutter et son Status ont bien été reçus après ShipyardSwap, mais la commande à 14:12:25 UTC a été refusée avec telemetry_stale : le dernier Status datait de 14:09:44 UTC. Cette observation corrige l'hypothèse initiale d'une mise à jour régulière. Le test de régression couvre le changement de vaisseau puis trois minutes sans modification du Status. Le scénario Stale représente désormais un nouveau Loadout sans Status de confirmation.
 
 ## Réglages et diagnostic
 

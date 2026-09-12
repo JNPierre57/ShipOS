@@ -79,7 +79,7 @@ async function setup() {
     id = 0;
   const send = (p: Record<string, unknown>) =>
     run.ingest(
-      source({ ...p, timestamp: new Date(clock.now()).toISOString() }, ++seq),
+      source({ timestamp: new Date(clock.now()).toISOString(), ...p }, ++seq),
     );
   const request = () =>
     run.shipCommands.execute({
@@ -147,6 +147,11 @@ test("stale data and disconnected agent are refused; reconnection requires a fre
   const t = await setup();
   t.load();
   t.clock.advance(46000);
+  t.send({
+    event: "Status",
+    Flags: 16777224,
+    timestamp: "2026-09-12T12:00:00Z",
+  });
   expect(t.request().reason).toBe("telemetry_stale");
   t.run.shipCommands.link = () => ({
     connected: false,
@@ -164,6 +169,23 @@ test("stale data and disconnected agent are refused; reconnection requires a fre
   expect(t.request().reason).toBe("awaiting_fresh_telemetry");
   t.status();
   expect(t.request().status).toBe("presented");
+  t.run.close();
+});
+test("ship swap followed by minutes at dock keeps the newly validated vessel available", async () => {
+  const t = await setup();
+  t.load();
+  expect(t.request().status).toBe("presented");
+  t.clock.advance(31000);
+  t.send({ event: "Loadout", Ship: "empire_trader", ShipID: 2 });
+  expect(t.request().reason).toBe("telemetry_stale");
+  t.status();
+  t.clock.advance(180000);
+  expect(t.request().status).toBe("presented");
+  expect(t.run.engine.snapshot()[0]!.definition.title).toBe(
+    "SHIP // IMPERIAL CLIPPER",
+  );
+  t.send({ event: "Shutdown" });
+  expect(t.request().reason).toBe("game_not_active");
   t.run.close();
 });
 test("cold availability cannot inherit active state from restored WorldState", async () => {

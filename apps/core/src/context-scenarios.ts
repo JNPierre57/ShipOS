@@ -46,6 +46,8 @@ export function contextScenario(name: string): Record<string, unknown>[] {
     if (name.endsWith("Disconnected"))
       add(3, { event: "ShipOSDemoDisconnect" });
     if (name.endsWith("NMS")) add(3, { event: "Shutdown" });
+    if (name.endsWith("Stale"))
+      add(3, { event: "Loadout", Ship: "empire_trader", ShipID: 2 });
     add(name.endsWith("Stale") ? 60 : 4, { event: "ShipOSDemoCommand" });
   } else if (name === "New Build") {
     const load = (at: number, item: string) =>
