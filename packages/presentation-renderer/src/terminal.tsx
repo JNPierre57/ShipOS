@@ -11,9 +11,11 @@ export function TerminalSequence({ card }: { card: VisualCard }) {
     0,
     card.profile === "COMPACT"
       ? 1
-      : terminal.primitive === "IncidentPanel"
-        ? 5
-        : 3,
+      : terminal.maxLines
+        ? Math.min(8, terminal.maxLines)
+        : terminal.primitive === "IncidentPanel"
+          ? 5
+          : 3,
   );
   return (
     <section

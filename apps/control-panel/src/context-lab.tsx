@@ -5,6 +5,11 @@ import type { Editorial } from "../../core/src/editorial.js";
 type Snapshot = ContextState & {
   ship: ShipMemory | null;
   editorial?: ReturnType<Editorial["snapshot"]>;
+  shipCommand?: {
+    available: boolean;
+    reason: string | null;
+    config: { freshnessTTL: number; durationMs: number };
+  };
 };
 export function ContextLab() {
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null),
@@ -273,6 +278,26 @@ export function ContextLab() {
                 </details>
               ))}
             {!data.timeline.length && <p>No significant transition.</p>}
+          </section>
+          <section className="panel">
+            <h2>Commande chat !ship</h2>
+            <p>
+              {data.shipCommand?.available
+                ? "Disponible : télémétrie Elite récente et vaisseau identifié."
+                : "Indisponible : " +
+                  (data.shipCommand?.reason ?? "en attente")}
+            </p>
+            <p>
+              Fiche de {(data.shipCommand?.config.durationMs ?? 6000) / 1000}{" "}
+              secondes · fraîcheur maximale{" "}
+              {(data.shipCommand?.config.freshnessTTL ?? 45000) / 1000}{" "}
+              secondes. Réglages et désactivation dans le module Chat !ship.
+            </p>
+            <p>
+              Le jeu est considéré disponible à partir de sa session et de sa
+              télémétrie. Après un crash sans fermeture normale, le refus peut
+              attendre l’expiration de ce délai.
+            </p>
           </section>
           <section className="panel">
             <h2>Editorial memory · why this alert?</h2>

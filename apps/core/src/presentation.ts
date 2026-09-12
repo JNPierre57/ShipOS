@@ -73,10 +73,11 @@ export class PresentationEngine {
     });
     if (definition.layers.includes("GlobalFxLayer"))
       this.emit(run, "overlay.effect.start", { accent: definition.accent });
-    this.emit(run, "audio.play", {
-      assetId: definition.audioAsset,
-      bus: "alerts",
-    });
+    if (definition.audioAsset)
+      this.emit(run, "audio.play", {
+        assetId: definition.audioAsset,
+        bus: "alerts",
+      });
     const cancelTimer = this.clock.later(definition.durationMs, () =>
       this.finish(run.id, "completed"),
     );

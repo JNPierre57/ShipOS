@@ -390,6 +390,11 @@ function App() {
                     "Editorial Journey",
                     "System Return",
                     "Ship Reunion",
+                    "Ship Card Cutter",
+                    "Ship Card Clipper",
+                    "Ship Card Stale",
+                    "Ship Card Disconnected",
+                    "Ship Card NMS",
                   ].map((s) => (
                     <option key={s}>{s}</option>
                   ))}

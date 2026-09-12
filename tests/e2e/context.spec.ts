@@ -19,6 +19,33 @@ test.beforeAll(async () => {
   await server.start();
 });
 test.afterAll(async () => server.close());
+test("ship source simulation renders all eight animated lines without an extra source", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.goto("http://127.0.0.1:48918/overlay/?motion=full");
+  await expect(page.locator("main")).toHaveAttribute("data-connected", "true");
+  const response = await page.request.post(
+    "http://127.0.0.1:48918/api/v1/simulation",
+    { data: { level: "source", scenario: "Ship Card Cutter", speed: 1 } },
+  );
+  expect(response.ok()).toBe(true);
+  await expect(page.getByText("SHIP // IMPERIAL CUTTER")).toBeVisible();
+  await expect(
+    page.getByText("CARGO  12 / 128 T", { exact: false }),
+  ).toBeVisible();
+  await expect(page.getByText("FSD  IDLE", { exact: false })).toBeVisible();
+  await expect(page.locator(".terminal-lines > div")).toHaveCount(8);
+  await expect(page.locator(".terminal-lines > div").last()).toHaveCSS(
+    "opacity",
+    "1",
+  );
+  await page.screenshot({
+    path: "test-results/ship-card.png",
+    omitBackground: true,
+  });
+  await expect(page.locator(".card")).toHaveCount(0, { timeout: 10000 });
+});
 test("historical return renders contextual animated lines and exposes its evidence in Context Lab", async ({
   page,
 }) => {

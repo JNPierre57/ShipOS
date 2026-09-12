@@ -14,6 +14,7 @@ export async function createGateway(
   heartbeatMs = 10000,
   staleMs = 30000,
   afterCommit?: () => boolean,
+  onDisconnected: () => void = () => {},
 ) {
   const app = Fastify({ logger: false, bodyLimit: 1024 * 1024 });
   await app.register(websocket, { options: { maxPayload: 1024 * 1024 } });
@@ -122,6 +123,7 @@ export async function createGateway(
         if (active === socket) {
           status.connected = false;
           active = undefined;
+          onDisconnected();
         }
       });
     },

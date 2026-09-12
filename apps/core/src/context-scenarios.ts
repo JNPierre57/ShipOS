@@ -7,6 +7,11 @@ export const contextScenarioNames = [
   "Editorial Journey",
   "System Return",
   "Ship Reunion",
+  "Ship Card Cutter",
+  "Ship Card Clipper",
+  "Ship Card Stale",
+  "Ship Card Disconnected",
+  "Ship Card NMS",
 ] as const;
 export function contextScenario(name: string): Record<string, unknown>[] {
   const rows: { at: number; payload: Record<string, unknown> }[] = [];
@@ -20,7 +25,29 @@ export function contextScenario(name: string): Record<string, unknown>[] {
     ShipID: 1,
   });
   status(0);
-  if (name === "New Build") {
+  if (name.startsWith("Ship Card ")) {
+    add(1, {
+      event: "Loadout",
+      Ship: name.endsWith("Clipper") ? "empire_trader" : "cutter",
+      ShipID: 1,
+      ShipName: "Wanderer",
+      ShipIdent: "DEMO-07",
+      MaxJumpRange: 48.7,
+      FuelCapacity: { Main: 32 },
+      CargoCapacity: 128,
+      Rebuy: 18400000,
+    });
+    add(2, {
+      event: "Status",
+      Flags: 16777224,
+      Fuel: { FuelMain: 24.6, FuelReservoir: 0.4 },
+      Cargo: 12,
+    });
+    if (name.endsWith("Disconnected"))
+      add(3, { event: "ShipOSDemoDisconnect" });
+    if (name.endsWith("NMS")) add(3, { event: "Shutdown" });
+    add(name.endsWith("Stale") ? 60 : 4, { event: "ShipOSDemoCommand" });
+  } else if (name === "New Build") {
     const load = (at: number, item: string) =>
       add(at, {
         event: "Loadout",

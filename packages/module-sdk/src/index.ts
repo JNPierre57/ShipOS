@@ -21,6 +21,13 @@ export interface BodyState {
   sourceIds: string[];
 }
 export interface WorldState {
+  shipTelemetry?: {
+    session: string | null;
+    agentId: string;
+    loadoutAt: string | null;
+    statusAt: string | null;
+    cargo: number | null;
+  };
   commander: Unknown<string>;
   ship: Record<string, unknown>;
   vehicleContext:
@@ -92,6 +99,7 @@ export interface PresentationDefinition {
       | "IncidentPanel"
       | "FatalSequence"
       | "RecoverySequence";
+    maxLines?: number;
     severity: "notice" | "warning" | "critical";
     label: string;
     lines: string[];

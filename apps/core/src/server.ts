@@ -14,6 +14,7 @@ import { Store } from "./store.js";
 import { RunContext } from "./runtime.js";
 import { createGateway } from "./gateway.js";
 import { modules } from "./modules.js";
+import { shipCommandApi } from "./ship-command-api.js";
 export async function createServer(config: CoreConfig, token: string) {
   const logger = createLogger(join(config.dataDir, "logs"));
   const obs = new ObsAdapter(config.obs);
@@ -72,6 +73,7 @@ export async function createServer(config: CoreConfig, token: string) {
   app.get("/control", async (_req, reply) => reply.redirect("/control/"));
   app.get("/", async (_req, reply) => reply.redirect("/control/"));
   app.get("/overlay/ws", { websocket: true }, (socket) => {
+    run.shipCommands.revalidate();
     overlays.add(socket);
     socket.send(
       JSON.stringify({
@@ -130,7 +132,16 @@ export async function createServer(config: CoreConfig, token: string) {
     },
     config.heartbeatMs,
     config.staleMs,
+    undefined,
+    () => run.shipCommands.revalidate(),
   );
+  run.shipCommands.link = () => ({
+    connected: gateway.status.connected,
+    lastHeartbeat: gateway.status.lastHeartbeat,
+    agentId: gateway.status.agentId,
+    generation: gateway.status.reconnectCount,
+  });
+  shipCommandApi(app, run, config.dataDir);
   app.get("/health", () => ({ status: "ok", db: "ok", mode: "live" }));
   app.get("/api/v1/status", () => ({
     core: "READY",

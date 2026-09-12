@@ -39,6 +39,7 @@ export interface Decision {
   cost: number;
 }
 export class Director {
+  guard: (event: DomainEvent) => string | null = () => null;
   queue: { event: DomainEvent; module: ShipModule }[] = [];
   private busy = false;
   private cooldowns = new Map<string, number>();
@@ -140,6 +141,8 @@ export class Director {
       return this.save(d);
     };
     if (age > p.ttlMs) return stop("expired", "ttl_expired");
+    const rejected = this.guard(event);
+    if (rejected) return stop("suppressed", rejected);
     const editorialId =
       typeof event.payload.editorialNoteId === "string"
         ? event.payload.editorialNoteId

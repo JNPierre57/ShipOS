@@ -2,6 +2,8 @@
 
 Étude du 12 septembre 2026. Aucune implémentation ni modification du service déployé. Version validée par les essais du stream : `395a875`, sauvegardée sur GitHub sous `before-chat-ship` avant cette étude.
 
+**Suite de l’étude :** l’utilisateur a exclu le cas Elite ouvert en arrière-plan et accepté la limite de détection après crash. L’implémentation est décrite dans [chat-ship.md](chat-ship.md). Les réserves ci-dessous décrivent le cahier des charges initial, avant cet arbitrage.
+
 **Verdict : carte, données et intégration légères réalisables. La garantie absolue « jamais de fiche lorsque le jeu utilisé est NMS » nécessite une preuve d’activité que le système actuel ne possède pas. Ne pas assimiler un TTL à cette garantie.**
 
 ## 1. Sources et vérification des données
@@ -90,6 +92,15 @@ Configuration limitée : enabled, cooldownMs, durationMs, freshnessTTL ; état d
 | Maintenabilité | Handler métier dans ShipOS, adaptateur indépendant dans le chat, renderer ignorant Elite |
 
 # IMPLEMENTATION PLAN
+
+## Vérification accompagnée du 12 septembre 2026
+
+- À 10:34 UTC, Shadow démarré, Elite laissé fermé par l'utilisateur : Agent connecté, heartbeat vieux de 3,3 s, spool vide, séquence 16816 inchangée. Dernier état Elite daté du 11 septembre à 17:55 UTC ; vaisseau historique toujours présent, contexte véhicule inconnu. La connexion Agent ne revalide donc pas le jeu.
+- Après entrée en partie confirmée par l'utilisateur : nouveau LoadGame à 10:36:57 UTC, Loadout à 10:37:04 UTC et Status en mainShip à 10:37:05 UTC. Les champs de configuration attendus sont présents dans le nouvel état.
+- Les trois premiers Status observés sont espacés de 24 s (10:37:05, 10:37:29, 10:37:53 UTC). Un TTL de 30 s laisse peu de marge dans cette situation ; il reste provisoire. Ces observations ne valident pas encore la détection de fermeture, du premier plan ou du jeu actif.
+- Fermeture normale confirmée par l'utilisateur : Shutdown reçu à 10:40:19.802 UTC, puis Status avec Flags=0 à 10:40:19.805 UTC. À 10:40:52 UTC, l'Agent répond toujours (heartbeat vieux de 1,1 s), le spool est vide et le vaisseau reste mémorisé, mais le contexte véhicule est inconnu. La fermeture normale fournit donc une invalidation explicite ; un Status ultérieur ne doit pas rouvrir cette session. Le crash sans Shutdown et Elite en arrière-plan restent à vérifier.
+
+## Étapes de réalisation
 
 1. **Résoudre le critère de contexte actif avant l’implémentation de production.** Tester arrêt normal, crash, dock immobile, menu et Elite laissé ouvert derrière NMS. Évaluer la petite preuve côté Agent si la garantie stricte reste requise. Ne pas remplacer cette vérification par une hypothèse.
 2. Ajouter les groupes de fraîcheur au WorldState, Cargo et invalidations ; disponibilité volatile avec Clock injectable. Fixtures de données manquantes, changement de vaisseau, redémarrage Core et backlog ancien.

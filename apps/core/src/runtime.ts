@@ -19,6 +19,7 @@ import { Director } from "./director.js";
 import { ContextService } from "./context-service.js";
 import { contextModules } from "./context-modules.js";
 import { Editorial, editorialModule } from "./editorial.js";
+import { ShipCommands, shipModule } from "./ship-command.js";
 export function eventFactory(
   moduleId: string,
   candidate: Candidate,
@@ -62,6 +63,7 @@ export class RunContext {
   private processing = false;
   context: ContextService;
   editorial: Editorial;
+  shipCommands: ShipCommands;
   private cancelTick: (() => void) | undefined;
   sessionId: string | null = null;
   constructor(
@@ -78,7 +80,7 @@ export class RunContext {
       store.get<WorldState>("world_state", "current") ?? initialWorld();
     this.modules = modules.map((m) => ({ ...m, policy: { ...m.policy } }));
     this.modules.push(
-      ...[...contextModules, editorialModule]
+      ...[...contextModules, editorialModule, shipModule]
         .filter(
           (m) =>
             !this.modules.some(
@@ -94,6 +96,8 @@ export class RunContext {
     this.registry = new Registry(this.modules, store, failureThreshold);
     this.engine = new PresentationEngine(clock, store);
     this.director = new Director(clock, store, this.registry, this.engine);
+    this.shipCommands = new ShipCommands(this);
+    this.director.guard = (e) => this.shipCommands.guard(e);
   }
   private scheduleContext() {
     this.cancelTick = this.clock.later(1000, () => {
@@ -112,6 +116,7 @@ export class RunContext {
     this.cancelTick = undefined;
   }
   contextTick() {
+    this.shipCommands.revalidate();
     const before = structuredClone(this.context.state);
     try {
       this.store.db.transaction(() => {
@@ -180,7 +185,7 @@ export class RunContext {
             next.expedition = active?.id ?? null;
             for (const module of this.modules) {
               if (
-                [...contextModules, editorialModule].some(
+                [...contextModules, editorialModule, shipModule].some(
                   (m) => m.manifest.id === module.manifest.id,
                 )
               )
@@ -248,6 +253,7 @@ export class RunContext {
           });
         })();
         this.world = next;
+        this.shipCommands.source(source);
         if (contextDraft) {
           this.context.state = contextDraft.draft;
           this.context.ship = contextDraft.ship;

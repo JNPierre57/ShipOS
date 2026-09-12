@@ -68,8 +68,22 @@ export function reduce(previous: WorldState, source: SourceEvent): WorldState {
                   ? "mainShip"
                   : "unknown";
     next.contextAt = timestamp;
+    if (next.shipTelemetry) {
+      next.shipTelemetry.statusAt = timestamp;
+      next.shipTelemetry.cargo =
+        typeof p.Cargo === "number" && Number.isFinite(p.Cargo) && p.Cargo >= 0
+          ? p.Cargo
+          : null;
+    }
   }
   if (p.event === "LoadGame") {
+    next.shipTelemetry = {
+      session: source.id,
+      agentId: source.agentId,
+      loadoutAt: null,
+      statusAt: null,
+      cargo: null,
+    };
     if (typeof p.Commander === "string") next.commander = p.Commander;
     next.ship = { Ship: p.Ship, ShipID: p.ShipID };
     next.vehicleContext = "unknown";
@@ -77,7 +91,14 @@ export function reduce(previous: WorldState, source: SourceEvent): WorldState {
   }
   if (p.event === "Loadout") {
     if (p.ShipID !== next.ship.ShipID) next.hullEpisode = false;
-    next.ship = { ...next.ship, ...p };
+    next.ship = { ...p };
+    if (next.shipTelemetry) {
+      next.shipTelemetry.loadoutAt = timestamp;
+      if (p.ShipID !== previous.ship.ShipID) {
+        next.shipTelemetry.statusAt = null;
+        next.shipTelemetry.cargo = null;
+      }
+    }
     if (typeof p.HullHealth === "number") {
       next.hull = p.HullHealth;
       if (p.HullHealth > 0.2) next.hullEpisode = false;
@@ -127,6 +148,11 @@ export function reduce(previous: WorldState, source: SourceEvent): WorldState {
     next.hullEpisode = false;
   }
   if (p.event === "Died" || p.event === "Resurrect" || p.event === "Shutdown") {
+    if (next.shipTelemetry) {
+      if (p.event === "Shutdown") next.shipTelemetry.session = null;
+      next.shipTelemetry.loadoutAt = null;
+      next.shipTelemetry.statusAt = null;
+    }
     next.vehicleContext = "unknown";
     next.contextAt = null;
     next.hullEpisode = false;

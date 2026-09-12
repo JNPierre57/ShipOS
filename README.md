@@ -57,6 +57,8 @@ Five public events: ship destroyed, critical hull, low fuel, high-value exobiolo
 
 ## Guides
 
+[Commande Twitch !ship](docs/chat-ship.md).
+
 [Mémoire éditoriale adaptative et scénarios de test](docs/editorial-memory.md).
 
 [Choreographed FULL sequences](docs/choreography.md).

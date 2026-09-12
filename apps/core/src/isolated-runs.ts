@@ -109,6 +109,13 @@ export class IsolatedRuns {
       scenario,
     };
     let timer: ReturnType<typeof setTimeout> | undefined;
+    let connected = true;
+    context.shipCommands.link = () => ({
+      connected,
+      lastHeartbeat: clock.now(),
+      agentId: "isolated:" + result.id,
+      generation: 0,
+    });
     let lastWall = Date.now();
     let index = 0;
     const firstTimestamp = sourceEpoch;
@@ -121,8 +128,27 @@ export class IsolatedRuns {
       }))
       .sort((a, b) => a.at - b.at);
     let elapsed = 0;
+    let commandRows = 0;
     const process = (p: Record<string, unknown>, seq: number) => {
       const e = source(p, seq);
+      if (level === "source" && p.event === "ShipOSDemoDisconnect") {
+        commandRows++;
+        connected = false;
+        context.shipCommands.revalidate();
+        return;
+      }
+      if (level === "source" && p.event === "ShipOSDemoCommand") {
+        commandRows++;
+        const outcome = context.shipCommands.execute({
+          requestId: "simulation:" + e.id,
+          timestamp: new Date(clock.now()).toISOString(),
+          platform: "simulation",
+        });
+        result.diagnostics.push(
+          "chat.command.ship " + outcome.status + " " + outcome.reason,
+        );
+        return;
+      }
       e.observedAt = new Date(clock.now()).toISOString();
       e.sourceTimestamp =
         typeof p.timestamp === "string" &&
@@ -130,6 +156,7 @@ export class IsolatedRuns {
           ? p.timestamp
           : null;
       e.agentId = "isolated:" + result.id;
+      e.sequence = seq - commandRows;
       if (level === "source") context.ingest(e);
       else {
         const module = context.modules.find(
