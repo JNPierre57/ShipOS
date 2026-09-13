@@ -1,4 +1,6 @@
+import { loadoutFixture, loadoutScenarioNames } from "./loadout-fixtures.js";
 export const contextScenarioNames = [
+  ...loadoutScenarioNames,
   "Quiet Travel",
   "Combat Escalation",
   "Close Call",
@@ -14,6 +16,11 @@ export const contextScenarioNames = [
   "Ship Card NMS",
 ] as const;
 export function contextScenario(name: string): Record<string, unknown>[] {
+  if (name.startsWith("Loadout "))
+    return loadoutFixture(name).map((p, i) => ({
+      ...p,
+      timestamp: new Date(Date.UTC(2026, 8, 12, 12, 0, i)).toISOString(),
+    }));
   const rows: { at: number; payload: Record<string, unknown> }[] = [];
   const add = (at: number, payload: Record<string, unknown>) =>
     rows.push({ at, payload });

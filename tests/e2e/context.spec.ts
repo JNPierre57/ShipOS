@@ -19,6 +19,40 @@ test.beforeAll(async () => {
   await server.start();
 });
 test.afterAll(async () => server.close());
+test("loadout renders a bounded animated module summary in the existing overlay", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.goto("http://127.0.0.1:48918/overlay/?motion=full");
+  await expect(page.locator("main")).toHaveAttribute("data-connected", "true");
+  const response = await page.request.post(
+    "http://127.0.0.1:48918/api/v1/simulation",
+    {
+      data: {
+        level: "source",
+        scenario: "Loadout Combat Engineered",
+        speed: 1,
+      },
+    },
+  );
+  expect(response.ok()).toBe(true);
+  await expect(page.getByText("LOADOUT // IMPERIAL CUTTER")).toBeVisible();
+  await expect(
+    page.getByText("Efficient G5 · Plasma Slug", { exact: false }),
+  ).toBeVisible();
+  await expect(page.locator(".terminal-lines > div").last()).toHaveCSS(
+    "opacity",
+    "1",
+  );
+  const box = await page.locator('[data-loadout="true"]').boundingBox();
+  expect(box!.y).toBeGreaterThanOrEqual(0);
+  expect(box!.height).toBeLessThan(800);
+  await page.screenshot({
+    path: "test-results/loadout-card.png",
+    omitBackground: true,
+  });
+  await expect(page.locator(".card")).toHaveCount(0, { timeout: 12000 });
+});
 test("ship source simulation renders all eight animated lines without an extra source", async ({
   page,
 }) => {

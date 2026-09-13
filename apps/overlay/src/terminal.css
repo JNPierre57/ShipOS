@@ -56,6 +56,10 @@
 .terminal-lines {
   padding: 22px 24px;
 }
+.card.terminal[data-loadout="true"] {
+  width: 920px;
+  font-size: 20px;
+}
 .terminal-lines > div {
   animation: os-line 220ms both;
   overflow-wrap: anywhere;

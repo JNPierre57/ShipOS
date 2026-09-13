@@ -12,7 +12,7 @@ export function TerminalSequence({ card }: { card: VisualCard }) {
     card.profile === "COMPACT"
       ? 1
       : terminal.maxLines
-        ? Math.min(8, terminal.maxLines)
+        ? Math.min(10, terminal.maxLines)
         : terminal.primitive === "IncidentPanel"
           ? 5
           : 3,
@@ -21,6 +21,7 @@ export function TerminalSequence({ card }: { card: VisualCard }) {
     <section
       className={`card terminal terminal-${terminal.primitive} severity-${terminal.severity}`}
       data-primitive={terminal.primitive}
+      data-loadout={terminal.label === "SHIPOS / LOADOUT" ? "true" : undefined}
       data-visual={card.visual}
       data-profile={card.profile}
       style={{ "--terminal-age": `-${elapsed}ms` } as CSSProperties}

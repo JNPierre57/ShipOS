@@ -104,6 +104,29 @@ export function reduce(previous: WorldState, source: SourceEvent): WorldState {
       if (p.HullHealth > 0.2) next.hullEpisode = false;
     }
   }
+  if (
+    [
+      "ShipyardSwap",
+      "ShipyardBuy",
+      "ShipyardNew",
+      "ModuleBuy",
+      "ModuleRetrieve",
+      "ModuleSell",
+      "ModuleStore",
+      "ModuleSwap",
+      "MassModuleStore",
+      "EngineerCraft",
+    ].includes(String(p.event)) ||
+    (p.event === "EngineerLegacyConvert" && p.IsPreview !== true)
+  ) {
+    if (next.shipTelemetry) {
+      next.shipTelemetry.loadoutAt = null;
+      if (String(p.event).startsWith("Shipyard")) {
+        next.shipTelemetry.statusAt = null;
+        next.shipTelemetry.cargo = null;
+      }
+    }
+  }
   if (p.event === "Disembark") {
     next.vehicleContext = "onFoot";
     next.contextAt = timestamp;

@@ -395,6 +395,14 @@ function App() {
                     "Ship Card Stale",
                     "Ship Card Disconnected",
                     "Ship Card NMS",
+                    "Loadout Cutter Cargo",
+                    "Loadout Clipper Exploration",
+                    "Loadout Combat Engineered",
+                    "Loadout No Engineering",
+                    "Loadout Inactive",
+                    "Loadout Stale",
+                    "Loadout Ship Switch",
+                    "Loadout Partial",
                   ].map((s) => (
                     <option key={s}>{s}</option>
                   ))}

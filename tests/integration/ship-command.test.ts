@@ -12,6 +12,73 @@ import { mkdtempSync, readFileSync, rmSync, statSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { shipCommandApi } from "../../apps/core/src/ship-command-api.js";
+import {
+  loadoutFixture,
+  loadoutScenarioNames,
+} from "../../apps/core/src/loadout-fixtures.js";
+import { loadoutView } from "../../apps/core/src/loadout-card.js";
+
+test("loadout selects and aggregates engineering without inventing missing fields", () => {
+  const ship = loadoutFixture("Loadout Combat Engineered")[1]!;
+  const view = loadoutView(ship, 8);
+  const weapons = view.modules.find((m) => m.category === "hardpoint")!;
+  expect(weapons.quantity).toBe(2);
+  expect(weapons.engineeringBlueprint).toBe("Efficient");
+  expect(weapons.engineeringGrade).toBe(5);
+  expect(weapons.experimentalEffect).toBe("Plasma Slug");
+  expect(weapons.specification).toBeUndefined();
+  expect(view.modules[0]!.specification).toBe("7A");
+  expect(view.omitted).toBeGreaterThan(0);
+  expect(loadoutView({ Modules: [null, {}, { Item: 3 }] }, 8).modules).toEqual(
+    [],
+  );
+  const plain = loadoutView(loadoutFixture("Loadout No Engineering")[1]!, 8);
+  expect(plain.modules.every((m) => !m.engineeringBlueprint)).toBe(true);
+});
+test("loadout lifecycle shares ship guard, handles outfitting, cooldown, queue and critical interruption", async () => {
+  const t = await setup();
+  for (const p of loadoutFixture("Loadout Combat Engineered").slice(0, 3))
+    t.send(p);
+  expect(t.request("loadout").status).toBe("presented");
+  expect(t.request("loadout").reason).toBe("cooldown");
+  expect(t.request().status).toBe("queued");
+  expect(t.run.engine.snapshot()).toHaveLength(1);
+  t.send({ event: "ModuleBuy", ShipID: 1 });
+  expect(t.run.engine.snapshot()).toHaveLength(0);
+  expect(t.request("loadout").reason).toBe("ship_data_unavailable");
+  t.send(loadoutFixture("Loadout Combat Engineered")[1]!);
+  t.clock.advance(31000);
+  expect(t.request("loadout").status).toBe("presented");
+  t.send({ event: "Status", Flags: 16777224 + 524288, Fuel: { FuelMain: 1 } });
+  expect(t.run.engine.snapshot()[0]!.definition.title).toBe("LOW FUEL");
+  t.send({ event: "Shutdown" });
+  expect(t.request("loadout").reason).toBe("game_not_active");
+  t.run.close();
+});
+test("loadout simulations cover switch, inactive, stale and partial snapshots", async () => {
+  const runs = new IsolatedRuns(modules);
+  for (const name of loadoutScenarioNames) {
+    const result = await runs.create(
+      "simulation",
+      contextScenario(name),
+      "instant",
+      "source",
+      undefined,
+      name,
+    );
+    const events = result.events.filter(
+      (e) => e.type === "shipos.command.loadout",
+    );
+    expect(events.length, name).toBe(
+      name.includes("Inactive") || name.includes("Stale") ? 0 : 1,
+    );
+    if (name.includes("Ship Switch")) {
+      expect(events[0]!.payload.title).toBe("LOADOUT // IMPERIAL CLIPPER");
+      expect(events[0]!.payload.lines).toContain("FSD 5A");
+    }
+  }
+  runs.close();
+});
 test("command HTTP entry authenticates and validates input before projection", async () => {
   const t = await setup();
   t.load();
@@ -81,12 +148,15 @@ async function setup() {
     run.ingest(
       source({ timestamp: new Date(clock.now()).toISOString(), ...p }, ++seq),
     );
-  const request = () =>
-    run.shipCommands.execute({
-      requestId: "test-" + ++id,
-      timestamp: new Date(clock.now()).toISOString(),
-      platform: "simulation",
-    });
+  const request = (command: "ship" | "loadout" = "ship") =>
+    run.shipCommands.execute(
+      {
+        requestId: "test-" + ++id,
+        timestamp: new Date(clock.now()).toISOString(),
+        platform: "simulation",
+      },
+      command,
+    );
   const status = () =>
     send({
       event: "Status",

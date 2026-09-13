@@ -20,6 +20,7 @@ import { ContextService } from "./context-service.js";
 import { contextModules } from "./context-modules.js";
 import { Editorial, editorialModule } from "./editorial.js";
 import { ShipCommands, shipModule } from "./ship-command.js";
+import { loadoutModule } from "./loadout-card.js";
 export function eventFactory(
   moduleId: string,
   candidate: Candidate,
@@ -80,7 +81,7 @@ export class RunContext {
       store.get<WorldState>("world_state", "current") ?? initialWorld();
     this.modules = modules.map((m) => ({ ...m, policy: { ...m.policy } }));
     this.modules.push(
-      ...[...contextModules, editorialModule, shipModule]
+      ...[...contextModules, editorialModule, shipModule, loadoutModule]
         .filter(
           (m) =>
             !this.modules.some(
@@ -185,9 +186,12 @@ export class RunContext {
             next.expedition = active?.id ?? null;
             for (const module of this.modules) {
               if (
-                [...contextModules, editorialModule, shipModule].some(
-                  (m) => m.manifest.id === module.manifest.id,
-                )
+                [
+                  ...contextModules,
+                  editorialModule,
+                  shipModule,
+                  loadoutModule,
+                ].some((m) => m.manifest.id === module.manifest.id)
               )
                 continue;
               for (const candidate of this.registry.detect(

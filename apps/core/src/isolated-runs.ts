@@ -139,13 +139,21 @@ export class IsolatedRuns {
       }
       if (level === "source" && p.event === "ShipOSDemoCommand") {
         commandRows++;
-        const outcome = context.shipCommands.execute({
-          requestId: "simulation:" + e.id,
-          timestamp: new Date(clock.now()).toISOString(),
-          platform: "simulation",
-        });
+        const outcome = context.shipCommands.execute(
+          {
+            requestId: "simulation:" + e.id,
+            timestamp: new Date(clock.now()).toISOString(),
+            platform: "simulation",
+          },
+          p.command === "loadout" ? "loadout" : "ship",
+        );
         result.diagnostics.push(
-          "chat.command.ship " + outcome.status + " " + outcome.reason,
+          "chat.command." +
+            (p.command === "loadout" ? "loadout" : "ship") +
+            " " +
+            outcome.status +
+            " " +
+            outcome.reason,
         );
         return;
       }

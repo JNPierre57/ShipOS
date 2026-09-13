@@ -21,6 +21,7 @@ export function controlApi(
     ...run.context.snapshot(),
     editorial: run.editorial.snapshot(),
     shipCommand: run.shipCommands.snapshot(),
+    loadoutCommand: run.shipCommands.snapshot("loadout"),
   }));
   app.get("/api/v1/context/source/:id", (req) =>
     run.store.source((req.params as { id: string }).id),
@@ -186,6 +187,7 @@ export function controlApi(
         ...r.context.context.snapshot(),
         editorial: r.context.editorial.snapshot(),
         shipCommand: r.context.shipCommands.snapshot(),
+        loadoutCommand: r.context.shipCommands.snapshot("loadout"),
       },
       decisions: r.context.store.all("director_decisions"),
     })),

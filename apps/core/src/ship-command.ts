@@ -9,6 +9,8 @@ import {
 } from "../../../packages/module-sdk/src/index.js";
 import type { RunContext } from "./runtime.js";
 import { eventFactory } from "./runtime.js";
+import { loadoutConfig, loadoutView, loadoutLines } from "./loadout-card.js";
+export type VesselCommand = "ship" | "loadout";
 
 export const shipConfig = z.strictObject({
   durationMs: z.number().int().min(3000).max(10000).default(6000),
@@ -86,7 +88,7 @@ export class ShipCommands {
   private freshStatus: string | null = null;
   private statusValidated = false;
   private requests = new Map<string, number>();
-  private lastRequest: number | null = null;
+  private lastRequest = new Map<VesselCommand, number>();
   constructor(readonly run: RunContext) {
     this.link = () => ({
       connected: run.mode !== "live",
@@ -119,16 +121,26 @@ export class ShipCommands {
       this.run.registry.status.get("chat-ship")?.config ?? {},
     );
   }
-  snapshot() {
-    const reason = this.reason();
-    return { available: reason === null, reason, config: this.config() };
+  snapshot(command: VesselCommand = "ship") {
+    const reason = this.reason(command);
+    return {
+      available: reason === null,
+      reason,
+      config:
+        command === "ship"
+          ? this.config()
+          : loadoutConfig.parse(
+              this.run.registry.status.get("chat-loadout")?.config ?? {},
+            ),
+    };
   }
-  reason(): string | null {
+  reason(command: VesselCommand = "ship"): string | null {
     const { world, clock } = this.run,
       t = world.shipTelemetry,
       link = this.link(),
       now = clock.now();
-    if (!this.run.registry.status.get("chat-ship")?.enabled) return "disabled";
+    if (!this.run.registry.status.get("chat-" + command)?.enabled)
+      return "disabled";
     if (!link.connected || now - link.lastHeartbeat > 30000)
       return "agent_unavailable";
     if (!t?.session) return "game_not_active";
@@ -148,14 +160,24 @@ export class ShipCommands {
       !Number.isSafeInteger(world.ship.ShipID)
     )
       return "ship_data_unavailable";
+    if (command === "loadout" && !loadoutView(world.ship, 8).modules.length)
+      return "loadout_unavailable";
     return null;
   }
   guard(event: DomainEvent) {
-    if (event.type !== "shipos.command.ship") return null;
+    if (
+      event.type !== "shipos.command.ship" &&
+      event.type !== "shipos.command.loadout"
+    )
+      return null;
+    const command =
+      event.type === "shipos.command.loadout" ? "loadout" : "ship";
     return (
-      this.reason() ??
+      this.reason(command) ??
       (event.payload.session !== this.run.world.shipTelemetry?.session ||
-      event.payload.shipId !== this.run.world.ship.ShipID
+      event.payload.shipId !== this.run.world.ship.ShipID ||
+      (command === "loadout" &&
+        event.payload.loadoutAt !== this.run.world.shipTelemetry?.loadoutAt)
         ? "ship_context_changed"
         : null)
     );
@@ -167,7 +189,7 @@ export class ShipCommands {
         this.run.engine.finish(active.id, "interrupted");
     }
   }
-  execute(input: unknown) {
+  execute(input: unknown, command: VesselCommand = "ship") {
     const request = shipRequest.parse(input),
       now = this.run.clock.now();
     if ((this.run.mode === "live") !== (request.platform === "twitch"))
@@ -179,26 +201,32 @@ export class ShipCommands {
       if (now - at > 60000) this.requests.delete(id);
     if (
       this.requests.has(request.requestId) ||
-      this.run.store.event("chat-ship:" + request.requestId)
+      this.run.store.event("chat-" + command + ":" + request.requestId)
     )
       return { status: "suppressed", reason: "duplicate" };
     if (this.requests.size >= 512)
       this.requests.delete(this.requests.keys().next().value!);
     this.requests.set(request.requestId, now);
-    const reason = this.reason();
+    const reason = this.reason(command);
     if (reason) return { status: "rejected", reason };
-    const module = this.run.modules.find((m) => m.manifest.id === "chat-ship")!;
-    if (
-      this.lastRequest !== null &&
-      now - this.lastRequest < module.policy.cooldownMs
-    )
+    const module = this.run.modules.find(
+      (m) => m.manifest.id === "chat-" + command,
+    )!;
+    const last = this.lastRequest.get(command);
+    if (last !== undefined && now - last < module.policy.cooldownMs)
       return { status: "suppressed", reason: "cooldown" };
     const w = this.run.world,
       s = w.ship,
-      c = this.config(),
+      c =
+        command === "ship"
+          ? this.config()
+          : loadoutConfig.parse(
+              this.run.registry.status.get("chat-loadout")?.config ?? {},
+            ),
       lines: string[] = [];
     const title =
-      "SHIP // " +
+      command.toUpperCase() +
+      " // " +
       (models[text(s.Ship).toLowerCase()] ?? text(s.Ship).toUpperCase());
     lines.push(title);
     const name = [
@@ -243,11 +271,18 @@ export class ShipCommands {
                 ? "SUPERCRUISE"
                 : "IDLE";
     lines.push("FSD  " + fsd);
+    if (command === "loadout") {
+      const config = loadoutConfig.parse(c);
+      const view = loadoutView(s, config.maxDisplayedModules);
+      lines.splice(0, lines.length, title, ...loadoutLines(view));
+      if (view.omitted) lines.push(`+ ${view.omitted} additional modules`);
+    }
     const event = eventFactory(
-      "chat-ship",
+      "chat-" + command,
       {
-        type: "shipos.command.ship",
-        semanticKey: "chat:ship",
+        type:
+          command === "ship" ? "shipos.command.ship" : "shipos.command.loadout",
+        semanticKey: "chat:" + command,
         quality: "derived",
         sourceIds: [this.freshStatus!],
         payload: {
@@ -256,6 +291,7 @@ export class ShipCommands {
           durationMs: c.durationMs,
           session: w.shipTelemetry!.session,
           shipId: s.ShipID,
+          loadoutAt: w.shipTelemetry!.loadoutAt,
         },
       },
       {
@@ -267,8 +303,8 @@ export class ShipCommands {
       this.run.clock,
     );
     // Request identity, not the most recent Status, defines command identity.
-    event.id = "chat-ship:" + request.requestId;
-    this.lastRequest = now;
+    event.id = "chat-" + command + ":" + request.requestId;
+    this.lastRequest.set(command, now);
     this.run.store.domain(event);
     this.run.dispatch();
     const decision = this.run.store.get<{ status: string; reasons: string[] }>(
