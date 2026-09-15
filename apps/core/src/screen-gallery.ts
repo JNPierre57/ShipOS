@@ -31,7 +31,7 @@ export const screenGalleryHtml = `<!doctype html>
       const app = document.getElementById('app');
       let shots = [], index = 0, sessionId = '', timer;
       const format = (at) => new Date(at).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' });
-      const safeUrl = (url) => typeof url === 'string' && /^\/api\/v1\/screens\/gallery\/[0-9a-f-]{36}\/[0-9a-f-]{36}$/.test(url) ? url : '';
+      const safeUrl = (url) => typeof url === 'string' && /^\\/api\\/v1\\/screens\\/gallery\\/[0-9a-f-]{36}\\/[0-9a-f-]{36}$/.test(url) ? url : '';
       const choose = (payload) => {
         const sessions = Array.isArray(payload.sessions) ? payload.sessions : [];
         const session = sessions.find((item) => item.active && Array.isArray(item.shots) && item.shots.length) || sessions.find((item) => Array.isArray(item.shots) && item.shots.length);
