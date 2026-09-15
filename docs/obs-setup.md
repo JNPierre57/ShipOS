@@ -17,7 +17,11 @@ WebAudio state is reported as READY, SUSPENDED, DEGRADED or DISCONNECTED. In a n
 
 Automated Chromium tests verify rendered cards, audio oscillator creation, cancellation, missing-asset degradation and reconnect. Native OBS smoke is not claimed executed by these tests.
 
-Optional OBS websocket v5 adapter is off by default. Enable through Core config, supply SHIPOS_OBS_PASSWORD privately, and explicitly list ShipOS-owned input names in allowedInputs. V1 only supports SetInputMute for allowed names via local API. It never edits scenes, transforms or foreign sources. Adapter unavailability is DEGRADED and leaves Browser Source functional.
+Optional OBS websocket v5 adapter is off by default. For `!screen`, enable it in the private Core config, supply `SHIPOS_OBS_PASSWORD` privately, and keep OBS's websocket server on its local port 4455. ShipOS 1.0 uses the configured Program scene **Relay - In-Game (Purple)** by default; change it in Modules → `chat-screen` if the scene name changes. The capture mode is `program`: OBS returns a JPEG of the composed scene at up to 1280 px wide, so crops and transforms are those actually visible in Program. An optional `requiredSource` can require a named source to be enabled through nested scenes/groups.
+
+The chat bridge accepts the exact `!screen` command through the same local token as `!ship` and `!loadout`. It requires an active OBS stream, the configured scene to be the current Program scene, a visible target chain, a 60-second cooldown and at most 30 captures per live. Captures go under `<dataDir>/screens/<session>/` as local JPEG files; the active manifest is outside SQLite. A new OBS stream starts a new session. The confirmation is a silent, low-priority thumbnail in the existing ShipOS Browser Source. OBS disconnection, preview-only mode, source absence, scene transitions, invalid data, quota or disk failures reject without a confirmation.
+
+This adapter still supports the existing `SetInputMute` operation for explicitly allowlisted input names. It never edits scenes, transforms or foreign sources. Adapter unavailability is DEGRADED and leaves Browser Source functional. A desktop capture can contain anything that is visible in the authorized OBS composition; do not put private windows in `Relay - In-Game (Purple)` while using `!screen`.
 
 ## Static overlay with macOS Reduce Motion
 

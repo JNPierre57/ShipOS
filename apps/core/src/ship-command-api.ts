@@ -4,10 +4,12 @@ import { join } from "node:path";
 import type { FastifyInstance } from "fastify";
 import type { RunContext } from "./runtime.js";
 import { shipRequest } from "./ship-command.js";
+import type { ScreenCommands } from "./screen-command.js";
 export function shipCommandApi(
   app: FastifyInstance,
   run: RunContext,
   dataDir: string,
+  screen?: ScreenCommands,
 ) {
   const path = join(dataDir, "chat-bridge.token");
   if (!existsSync(path))
@@ -17,9 +19,22 @@ export function shipCommandApi(
     });
   const token = readFileSync(path, "utf8").trim();
   if (token.length < 32) throw Error("Invalid chat bridge token");
-  for (const command of ["ship", "loadout"] as const) {
+  if (screen)
+    app.get<{ Params: { id: string } }>("/api/v1/screens/:id", (req, reply) => {
+      const bytes = screen.image(req.params.id);
+      if (!bytes) return reply.code(404).send({ error: "Not found" });
+      return reply
+        .header("Cache-Control", "no-store")
+        .header("X-Content-Type-Options", "nosniff")
+        .type("image/jpeg")
+        .send(bytes);
+    });
+  for (const command of ["ship", "loadout", "screen"] as const) {
+    if (command === "screen" && !screen) continue;
     app.get(`/api/v1/commands/${command}/status`, () =>
-      run.shipCommands.snapshot(command),
+      command === "screen"
+        ? screen!.snapshot()
+        : run.shipCommands.snapshot(command),
     );
     let lastLogged = "";
     app.post(
@@ -33,11 +48,14 @@ export function shipCommandApi(
             return reply.code(401).send({ error: "Unauthorized" });
         },
       },
-      (req, reply) => {
+      async (req, reply) => {
         const parsed = shipRequest.safeParse(req.body);
         if (!parsed.success)
           return reply.code(400).send({ error: "Invalid command" });
-        const result = run.shipCommands.execute(parsed.data, command);
+        const result =
+          command === "screen"
+            ? await screen!.execute(parsed.data)
+            : run.shipCommands.execute(parsed.data, command);
         const key = result.status + ":" + result.reason;
         if (
           !["cooldown", "duplicate"].includes(result.reason) &&

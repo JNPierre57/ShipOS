@@ -7,6 +7,8 @@
   --os-cyan: #8aaeb1;
   --os-red: #db6156;
 }
+.card.terminal[data-screenshot="true"] { width: 440px; font-size: 18px; }
+.screenshot-thumbnail { display: block; width: calc(100% - 32px); max-height: 230px; object-fit: contain; margin: 0 16px 16px; }
 .card.terminal {
   display: block;
   min-height: 0;

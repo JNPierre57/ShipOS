@@ -21,6 +21,7 @@ import { contextModules } from "./context-modules.js";
 import { Editorial, editorialModule } from "./editorial.js";
 import { ShipCommands, shipModule } from "./ship-command.js";
 import { loadoutModule } from "./loadout-card.js";
+import { screenModule } from "./screen-command.js";
 export function eventFactory(
   moduleId: string,
   candidate: Candidate,
@@ -81,7 +82,13 @@ export class RunContext {
       store.get<WorldState>("world_state", "current") ?? initialWorld();
     this.modules = modules.map((m) => ({ ...m, policy: { ...m.policy } }));
     this.modules.push(
-      ...[...contextModules, editorialModule, shipModule, loadoutModule]
+      ...[
+        ...contextModules,
+        editorialModule,
+        shipModule,
+        loadoutModule,
+        screenModule,
+      ]
         .filter(
           (m) =>
             !this.modules.some(
@@ -191,6 +198,7 @@ export class RunContext {
                   editorialModule,
                   shipModule,
                   loadoutModule,
+                  screenModule,
                 ].some((m) => m.manifest.id === module.manifest.id)
               )
                 continue;

@@ -131,6 +131,24 @@ export class IsolatedRuns {
     let commandRows = 0;
     const process = (p: Record<string, unknown>, seq: number) => {
       const e = source(p, seq);
+      if (level === "source" && p.event === "ShipOSDemoScreen") {
+        commandRows++;
+        const event = eventFactory(
+          "chat-screen",
+          {
+            type: "shipos.command.screen",
+            semanticKey: "demo:screen",
+            quality: "derived",
+            payload: { imagePath: "/overlay/fixtures/screen.svg" },
+          },
+          e,
+          mode,
+          clock,
+        );
+        context.store.domain(event);
+        context.dispatch();
+        return;
+      }
       if (level === "source" && p.event === "ShipOSDemoDisconnect") {
         commandRows++;
         connected = false;

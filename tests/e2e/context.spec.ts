@@ -19,6 +19,29 @@ test.beforeAll(async () => {
   await server.start();
 });
 test.afterAll(async () => server.close());
+test("Viewer Screenshot uses a local image, silent animated confirmation and no OBS", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.goto("http://127.0.0.1:48918/overlay/?motion=full");
+  await expect(page.locator("main")).toHaveAttribute("data-connected", "true");
+  const result = await page.request.post(
+    "http://127.0.0.1:48918/api/v1/simulation",
+    { data: { level: "source", scenario: "Viewer Screenshot", speed: 1 } },
+  );
+  expect(result.ok()).toBe(true);
+  await expect(page.getByText("SNAPSHOT CAPTURED")).toBeVisible();
+  const img = page.locator(".screenshot-thumbnail");
+  await expect(img).toBeVisible();
+  await expect
+    .poll(() => img.evaluate((e: HTMLImageElement) => e.naturalWidth))
+    .toBeGreaterThan(0);
+  await page.screenshot({
+    path: "test-results/viewer-screenshot.png",
+    omitBackground: true,
+  });
+  await expect(page.locator(".card")).toHaveCount(0, { timeout: 10000 });
+});
 test("loadout renders a bounded animated module summary in the existing overlay", async ({
   page,
 }) => {

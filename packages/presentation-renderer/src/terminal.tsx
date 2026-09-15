@@ -22,6 +22,7 @@ export function TerminalSequence({ card }: { card: VisualCard }) {
       className={`card terminal terminal-${terminal.primitive} severity-${terminal.severity}`}
       data-primitive={terminal.primitive}
       data-loadout={terminal.label === "SHIPOS / LOADOUT" ? "true" : undefined}
+      data-screenshot={terminal.imagePath ? "true" : undefined}
       data-visual={card.visual}
       data-profile={card.profile}
       style={{ "--terminal-age": `-${elapsed}ms` } as CSSProperties}
@@ -49,6 +50,15 @@ export function TerminalSequence({ card }: { card: VisualCard }) {
           </div>
         ))}
       </div>
+      {terminal.imagePath &&
+        (/^\/api\/v1\/screens\/[0-9a-f-]{36}$/.test(terminal.imagePath) ||
+          terminal.imagePath === "/overlay/fixtures/screen.svg") && (
+          <img
+            className="screenshot-thumbnail"
+            src={terminal.imagePath}
+            alt="Capture du stream"
+          />
+        )}
       <footer>
         <span>TELEMETRY / {terminal.severity.toUpperCase()}</span>
         <i />

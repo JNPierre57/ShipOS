@@ -319,7 +319,7 @@ function App() {
       <>
         {title(
           "Flight modules",
-          "Five internal modules, one shared event pipeline.",
+          "Modules composables, un seul pipeline d’événements.",
         )}
         <div className="grid two">
           {modules.map((m) => (
@@ -382,6 +382,7 @@ function App() {
                 >
                   {[
                     "Everything Goes Wrong",
+                    "Viewer Screenshot",
                     "Quiet Travel",
                     "Combat Escalation",
                     "Close Call",
@@ -672,6 +673,15 @@ function App() {
           "Local services, durable storage and operational checks.",
         )}
         {panel("Configuration", <Json value={status.system} />)}
+        {panel(
+          "Captures viewers / !screen",
+          <>
+            <Json value={status.screenshots} />
+            <button onClick={() => void act("obs/reconnect", {})}>
+              Reconnecter OBS
+            </button>
+          </>,
+        )}
         {panel(
           "Database backup",
           <>

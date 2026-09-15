@@ -15,6 +15,7 @@ import { RunContext } from "./runtime.js";
 import { createGateway } from "./gateway.js";
 import { modules } from "./modules.js";
 import { shipCommandApi } from "./ship-command-api.js";
+import { ScreenCommands } from "./screen-command.js";
 export async function createServer(config: CoreConfig, token: string) {
   const logger = createLogger(join(config.dataDir, "logs"));
   const obs = new ObsAdapter(config.obs);
@@ -141,12 +142,14 @@ export async function createServer(config: CoreConfig, token: string) {
     agentId: gateway.status.agentId,
     generation: gateway.status.reconnectCount,
   });
-  shipCommandApi(app, run, config.dataDir);
+  const screen = new ScreenCommands(run, obs, config.dataDir);
+  shipCommandApi(app, run, config.dataDir, screen);
   app.get("/health", () => ({ status: "ok", db: "ok", mode: "live" }));
   app.get("/api/v1/status", () => ({
     core: "READY",
     db: "ok",
     obs: obs.status,
+    screenshots: screen.snapshot(),
     agent: gateway.status,
     overlay: overlays.size,
     audio: audioStatus,
@@ -179,6 +182,11 @@ export async function createServer(config: CoreConfig, token: string) {
       .strictObject({ inputName: z.string(), inputMuted: z.boolean() })
       .parse(req.body);
     return { ok: await obs.mute(p.inputName, p.inputMuted) };
+  });
+  app.post("/api/v1/obs/reconnect", async () => {
+    await obs.close();
+    await obs.connect(process.env.SHIPOS_OBS_PASSWORD);
+    return { status: obs.status };
   });
   const reconcile = setInterval(() => {
     try {
@@ -217,6 +225,7 @@ export async function createServer(config: CoreConfig, token: string) {
       }
     },
     async close() {
+      screen.close();
       clearInterval(reconcile);
       await obs.close();
       isolated.close();

@@ -8,7 +8,7 @@ Agent requires `url`; default Journal path derives from homedir, default data fr
 
 Dynamic settings live in SQLite settings, through Control API: module config/enablement/presentation policies, Director budget, audio volumes. Modules receive only their validated config, never process.env. Hull threshold is deliberately fixed at observable0.2 in V1. Exobio threshold defaults to5,000,000 base credits; high gravity2g; many biological signals5; Died context freshness30s.
 
-Core `obs` config: enabled false, host127.0.0.1, port4455, allowedInputs []. When enabled only explicitly allowlisted input mute operations are supported. Connection failure marks adapter DEGRADED; Browser Source continues. No scene/transform mutation is implemented.
+Core `obs` config: enabled false, host127.0.0.1, port4455, allowedInputs []. When enabled, `!screen` also uses the existing local obs-websocket connection. The `chat-screen` module config defaults to `captureMode: "program"`, `programScene: "Relay - In-Game (Purple)"`, `requiredSource: ""`, `maxCaptures: 30`. Connection failure marks adapter DEGRADED; Browser Source continues. No scene/transform mutation is implemented. Configure the websocket password only through the private `SHIPOS_OBS_PASSWORD` environment file.
 
 Core moduleFailureThreshold config defaults3 consecutive errors; successful hook clears the counter. Re-enable through Modules after fixing the configuration/cause. Configuration and error state survive restart.
 

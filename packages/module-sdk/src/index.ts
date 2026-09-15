@@ -93,6 +93,7 @@ export interface ModuleContext {
 }
 export interface PresentationDefinition {
   terminal?: {
+    imagePath?: string;
     primitive:
       | "SystemLine"
       | "ConsoleStrip"
