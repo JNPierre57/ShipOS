@@ -1,7 +1,7 @@
 import { CrewCommunication } from "./comm.js";
 import { EventVisual, timeline, type VisualCard } from "./visuals.js";
 import { TerminalSequence, type TerminalDefinition } from "./terminal.js";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, type MutableRefObject } from "react";
 import type { PresentationAction } from "../../contracts/src/index.js";
 export const assetCatalog: Record<
   string,
@@ -116,6 +116,7 @@ export function Overlay() {
   const [cards, setCards] = useState<VisualCard[]>([]);
   const [connected, setConnected] = useState(false);
   const [audio] = useState(() => new AudioEngine());
+  const reportRendered = useRef<(id: string) => void>(() => {});
   useEffect(() => {
     let disposed = false;
     let socket: WebSocket;
@@ -191,6 +192,15 @@ export function Overlay() {
       );
       socket.onopen = () => {
         setConnected(true);
+        reportRendered.current = (id) => {
+          if (socket.readyState === WebSocket.OPEN)
+            socket.send(
+              JSON.stringify({
+                type: "overlay_rendered",
+                presentationRunId: id,
+              }),
+            );
+        };
         void audio.init().then(sendStatus).catch(sendStatus);
       };
       socket.onmessage = (e) => {
@@ -243,6 +253,7 @@ export function Overlay() {
     window.addEventListener("pointerdown", unlock);
     return () => {
       disposed = true;
+      reportRendered.current = () => {};
       clearTimeout(retry);
       socket.close();
       audio.clear();
@@ -271,15 +282,9 @@ export function Overlay() {
     >
       <div id="PersistentLayer" />
       <div id="EventLayer">
-        {cards.map((c) =>
-          c.comm ? (
-            <CrewCommunication key={c.id} card={c} />
-          ) : c.terminal ? (
-            <TerminalSequence key={c.id} card={c} />
-          ) : (
-            <EventVisual key={c.id} card={c} />
-          ),
-        )}
+        {cards.map((c) => (
+          <ReportedCard key={c.id} card={c} report={reportRendered} />
+        ))}
       </div>
       <div id="GlobalFxLayer">
         {cards
@@ -293,5 +298,28 @@ export function Overlay() {
           ))}
       </div>
     </main>
+  );
+}
+
+function ReportedCard({
+  card,
+  report,
+}: {
+  card: VisualCard;
+  report: MutableRefObject<(id: string) => void>;
+}) {
+  useEffect(() => {
+    // A mounted card reached a browser frame. This is not an OBS Program ACK.
+    let frame = requestAnimationFrame(() => {
+      frame = requestAnimationFrame(() => report.current(card.id));
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [card.id, report]);
+  return card.comm ? (
+    <CrewCommunication card={card} />
+  ) : card.terminal ? (
+    <TerminalSequence card={card} />
+  ) : (
+    <EventVisual card={card} />
   );
 }

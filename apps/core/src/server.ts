@@ -58,6 +58,7 @@ export async function createServer(config: CoreConfig, token: string) {
     decorateReply: false,
   });
   const overlays = new Set<WebSocket>();
+  let nextOverlayId = 0;
   let audioStatus = "DISCONNECTED";
   app.addHook("onRequest", async (req, reply) => {
     if (
@@ -80,10 +81,16 @@ export async function createServer(config: CoreConfig, token: string) {
     reply.type("text/html; charset=utf-8").send(screenGalleryHtml),
   );
   app.get("/", async (_req, reply) => reply.redirect("/control/"));
-  app.get("/overlay/ws", { websocket: true }, (socket) => {
+  app.get("/overlay/ws", { websocket: true }, (socket, req) => {
     run.shipCommands.revalidate();
     run.crew.revalidate();
     overlays.add(socket);
+    const overlayId = ++nextOverlayId;
+    const client = /obs/i.test(req.headers["user-agent"] ?? "")
+      ? "obs"
+      : "browser";
+    const receipts = new Set<string>();
+    logger.info({ overlayId, client, connected: true }, "Overlay connection");
     socket.send(
       JSON.stringify({
         type: "volumes",
@@ -99,23 +106,60 @@ export async function createServer(config: CoreConfig, token: string) {
     socket.on("message", (data) => {
       try {
         const msg = z
-          .object({
-            type: z.literal("audio_status"),
-            status: z.enum(["READY", "SUSPENDED", "DEGRADED"]),
-            activeSources: z.number().int().nonnegative(),
-          })
+          .discriminatedUnion("type", [
+            z.object({
+              type: z.literal("audio_status"),
+              status: z.enum(["READY", "SUSPENDED", "DEGRADED"]),
+              activeSources: z.number().int().nonnegative(),
+            }),
+            z.strictObject({
+              type: z.literal("overlay_rendered"),
+              presentationRunId: z.uuid(),
+            }),
+          ])
           .parse(JSON.parse(data.toString()));
-        audioStatus = msg.status;
+        if (msg.type === "audio_status") audioStatus = msg.status;
+        else {
+          const active = [...run.engine.snapshot(), ...isolated.snapshots()];
+          for (const id of receipts)
+            if (!active.some((p) => p.id === id)) receipts.delete(id);
+          const p = active.find((p) => p.id === msg.presentationRunId);
+          if (p && !receipts.has(p.id)) {
+            receipts.add(p.id);
+            logger.info(
+              {
+                overlayId,
+                client,
+                presentationRunId: p.id,
+                eventId: p.eventId,
+                elapsedMs: Date.now() - p.startedAt,
+              },
+              "Overlay rendered",
+            );
+          }
+        }
       } catch {
         socket.close(1008, "Invalid status");
       }
     });
-    socket.on("close", () => {
+    socket.on("close", (closeCode) => {
       overlays.delete(socket);
+      logger.info(
+        { overlayId, client, connected: false, closeCode },
+        "Overlay connection",
+      );
       if (!overlays.size) audioStatus = "DISCONNECTED";
     });
   });
   run.engine.listeners.add((action) => {
+    if (action.type === "overlay.show")
+      logger.info(
+        {
+          presentationRunId: action.presentationRunId,
+          clients: [...overlays].filter((s) => s.readyState === 1).length,
+        },
+        "Overlay presentation sent",
+      );
     for (const ws of overlays)
       if (ws.readyState === 1)
         ws.send(JSON.stringify({ type: "action", action }));
@@ -146,6 +190,7 @@ export async function createServer(config: CoreConfig, token: string) {
       run.shipCommands.revalidate();
       run.crew.revalidate();
     },
+    (detail) => logger.info(detail, "Agent connection"),
   );
   run.shipCommands.link = () => ({
     connected: gateway.status.connected,

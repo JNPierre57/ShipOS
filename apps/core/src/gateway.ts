@@ -15,6 +15,12 @@ export async function createGateway(
   staleMs = 30000,
   afterCommit?: () => boolean,
   onDisconnected: () => void = () => {},
+  onConnection: (detail: {
+    connected: boolean;
+    generation: number;
+    sequence: number;
+    closeCode?: number;
+  }) => void = () => {},
 ) {
   const app = Fastify({ logger: false, bodyLimit: 1024 * 1024 });
   await app.register(websocket, { options: { maxPayload: 1024 * 1024 } });
@@ -73,6 +79,11 @@ export async function createGateway(
             status.spoolDepth = h.spoolDepth ?? 0;
             status.reconnectCount++;
             status.sequence = store.ack(agentId);
+            onConnection({
+              connected: true,
+              generation: status.reconnectCount,
+              sequence: status.sequence,
+            });
             socket.send(
               JSON.stringify({
                 type: "welcome",
@@ -118,11 +129,17 @@ export async function createGateway(
         }
       });
       socket.on("error", () => {});
-      socket.on("close", () => {
+      socket.on("close", (closeCode) => {
         clearInterval(timer);
         if (active === socket) {
           status.connected = false;
           active = undefined;
+          onConnection({
+            connected: false,
+            generation: status.reconnectCount,
+            sequence: status.sequence,
+            closeCode,
+          });
           onDisconnected();
         }
       });

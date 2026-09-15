@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { mkdtempSync } from "node:fs";
+import { mkdtempSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import WebSocket from "ws";
@@ -7,12 +7,25 @@ import { createServer } from "../../apps/core/src/server.js";
 import { coreSchema } from "../../apps/core/src/config.js";
 import { source } from "../../packages/testkit/src/index.js";
 let server: Awaited<ReturnType<typeof createServer>>;
+const dataDir = mkdtempSync(join(tmpdir(), "shipos-browser "));
+const logs = () =>
+  readFileSync(join(dataDir, "logs/core.jsonl"), "utf8")
+    .trim()
+    .split("\n")
+    .map(
+      (line) =>
+        JSON.parse(line) as {
+          msg: string;
+          presentationRunId?: string;
+          overlayId?: number;
+        },
+    );
 test.beforeAll(async () => {
   server = await createServer(
     coreSchema.parse({
       port: 48910,
       gatewayPort: 48911,
-      dataDir: mkdtempSync(join(tmpdir(), "shipos-browser ")),
+      dataDir,
     }),
     "browser-fixture-token",
   );
@@ -50,8 +63,25 @@ test("Gateway → durable inbox → Died detector → actual overlay, reconnect,
     event: source({ event: "Died", timestamp }, 2),
   });
   await expect(page.getByText("VESSEL SIGNAL LOST")).toBeVisible();
+  await expect
+    .poll(() => logs().filter((l) => l.msg === "Overlay rendered").length)
+    .toBe(1);
+  const first = logs().find((l) => l.msg === "Overlay rendered")!;
+  expect(
+    logs().some(
+      (l) =>
+        l.msg === "Overlay presentation sent" &&
+        l.presentationRunId === first.presentationRunId,
+    ),
+  ).toBe(true);
   await page.reload();
   await expect(page.getByText("VESSEL SIGNAL LOST")).toBeVisible();
+  await expect
+    .poll(() => logs().filter((l) => l.msg === "Overlay rendered").length)
+    .toBe(2);
+  expect(
+    logs().filter((l) => l.msg === "Overlay rendered")[1]!.overlayId,
+  ).not.toBe(first.overlayId);
   server.run.engine.cancelAll();
   await expect(page.locator(".card")).toHaveCount(0);
   await page.close();

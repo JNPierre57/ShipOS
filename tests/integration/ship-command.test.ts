@@ -18,6 +18,66 @@ import {
 } from "../../apps/core/src/loadout-fixtures.js";
 import { loadoutView } from "../../apps/core/src/loadout-card.js";
 
+test("engineering keeps both commands usable without another Loadout, including after Agent restart", async () => {
+  const t = await setup();
+  try {
+    const fixture = loadoutFixture("Loadout Combat Engineered");
+    t.send(fixture[0]!);
+    t.send({ ...fixture[1], MaxJumpRange: 26.1, Rebuy: 40000000 });
+    t.status();
+    t.clock.advance(1000);
+    t.send({
+      event: "EngineerCraft",
+      Slot: "PowerPlant",
+      Module: "int_powerplant_size8_class5",
+      BlueprintName: "PowerPlant_Boosted",
+      Level: 5,
+      Quality: 1,
+      ApplyExperimentalEffect: "special_powerplant_highcharge",
+      ExperimentalEffect: "special_powerplant_highcharge",
+      ExperimentalEffect_Localised: "Modèle XXL",
+      Modifiers: [
+        { Label: "Mass", Value: 88, OriginalValue: 80, LessIsGood: 1 },
+      ],
+    });
+    t.run.engine.cancelAll();
+    expect(t.request("loadout").status).toBe("presented");
+    expect(t.run.engine.snapshot()[0]!.definition.terminal?.lines).toContain(
+      "POWER PLANT 8A · Overcharged G5 · Modèle XXL",
+    );
+    t.run.shipCommands.link = () => ({
+      connected: false,
+      lastHeartbeat: t.clock.now(),
+      agentId: "fixture-agent",
+      generation: 1,
+    });
+    expect(t.request().reason).toBe("agent_unavailable");
+    t.run.shipCommands.link = () => ({
+      connected: true,
+      lastHeartbeat: t.clock.now(),
+      agentId: "fixture-agent",
+      generation: 2,
+    });
+    expect(t.request().reason).toBe("awaiting_fresh_telemetry");
+    t.status();
+    t.clock.advance(31 * 60000);
+    t.run.engine.cancelAll();
+    expect(t.request().status).toBe("presented");
+    const lines = t.run.engine.snapshot()[0]!.definition.terminal!.lines;
+    expect(lines[0]).toBe("SHIP // IMPERIAL CUTTER");
+    expect(
+      lines.some((l) => l.startsWith("JUMP MAX") || l.startsWith("REBUY")),
+    ).toBe(false);
+    t.run.engine.cancelAll();
+    expect(t.request("loadout").status).toBe("presented");
+    t.send({ event: "Shutdown" });
+    expect(t.request().reason).toBe("game_not_active");
+    expect(t.request("loadout").reason).toBe("game_not_active");
+  } finally {
+    t.run.close();
+  }
+});
+
 test("loadout selects and aggregates engineering without inventing missing fields", () => {
   const ship = loadoutFixture("Loadout Combat Engineered")[1]!;
   const view = loadoutView(ship, 8);

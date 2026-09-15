@@ -15,6 +15,11 @@ test("network loss after commit before ACK; native client reconnect, ACK resume,
   const store = new Store(":memory:");
   await store.migrate();
   let drop = true;
+  const connections: {
+    connected: boolean;
+    generation: number;
+    sequence: number;
+  }[] = [];
   const gateway = await createGateway(
     store,
     "transport-token",
@@ -28,6 +33,8 @@ test("network loss after commit before ACK; native client reconnect, ACK resume,
       }
       return true;
     },
+    undefined,
+    (detail) => connections.push(detail),
   );
   await gateway.app.listen({ host: "127.0.0.1", port: 0 });
   const port = (gateway.app.server.address() as { port: number }).port;
@@ -58,6 +65,9 @@ test("network loss after commit before ACK; native client reconnect, ACK resume,
     await expect.poll(() => spool.state.acked).toBe(9);
     expect(store.pendingSources()).toHaveLength(9);
     expect(spool.pending()).toHaveLength(0);
+    expect(connections.some((c) => !c.connected)).toBe(true);
+    expect(connections.filter((c) => c.connected).length).toBeGreaterThan(1);
+    expect(connections.at(-1)?.generation).toBe(gateway.status.reconnectCount);
   } finally {
     client.stop();
     await gateway.app.close();

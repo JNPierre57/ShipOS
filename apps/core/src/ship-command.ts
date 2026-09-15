@@ -198,8 +198,7 @@ export class ShipCommands {
       this.reason(command) ??
       (event.payload.session !== this.run.world.shipTelemetry?.session ||
       event.payload.shipId !== this.run.world.ship.ShipID ||
-      (command === "loadout" &&
-        event.payload.loadoutAt !== this.run.world.shipTelemetry?.loadoutAt)
+      event.payload.loadoutAt !== this.run.world.shipTelemetry?.loadoutAt
         ? "ship_context_changed"
         : null)
     );

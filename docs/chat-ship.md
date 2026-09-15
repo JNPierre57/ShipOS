@@ -17,6 +17,7 @@ L’utilisateur a précisé qu’Elite est toujours fermé avant de passer à un
 - Core redémarré : disponibilité volatile initialement inconnue. Un WorldState historique ne suffit pas. Une session restaurée doit recevoir un nouveau Status live valide ; une ancienne base sans métadonnées nécessite une nouvelle entrée en partie.
 - Données anciennes, date future incohérente, absence de configuration, contexte à pied/SRV/fighter/taxi/multicrew : refus.
 - Changement de vaisseau : remplacement du Loadout et attente d’un Status correspondant ; pas de reprise des champs facultatifs de l’ancien vaisseau.
+- Engineering sur un module installé et identifié : mise à jour à partir du Journal sans attendre un nouveau Loadout. Les performances globales non reconfirmées sont omises ; voir [les règles de projection !loadout](chat-loadout.md). Les changements incomplets ou incohérents restent refusés.
 - Mort et résurrection : configuration et Status à reconstruire, sans exiger artificiellement un nouveau LoadGame.
 - Contrôle à la demande, lors de la sortie de file, à la reconnexion overlay et pendant l’affichage. La vérification temporelle réutilise le tick de contexte existant à 1 Hz ; aucun polling spécifique.
 

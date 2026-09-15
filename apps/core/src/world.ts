@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { applyEngineering } from "./ship-engineering.js";
 import type { WorldState } from "../../../packages/module-sdk/src/index.js";
 import type { SourceEvent } from "../../../packages/contracts/src/index.js";
 export const STANDARD_GRAVITY = 9.80665;
@@ -115,9 +116,7 @@ export function reduce(previous: WorldState, source: SourceEvent): WorldState {
       "ModuleStore",
       "ModuleSwap",
       "MassModuleStore",
-      "EngineerCraft",
-    ].includes(String(p.event)) ||
-    (p.event === "EngineerLegacyConvert" && p.IsPreview !== true)
+    ].includes(String(p.event))
   ) {
     if (next.shipTelemetry) {
       next.shipTelemetry.loadoutAt = null;
@@ -127,6 +126,13 @@ export function reduce(previous: WorldState, source: SourceEvent): WorldState {
       }
     }
   }
+  if (
+    (p.event === "EngineerCraft" ||
+      (p.event === "EngineerLegacyConvert" && p.IsPreview !== true)) &&
+    !applyEngineering(next, source) &&
+    next.shipTelemetry
+  )
+    next.shipTelemetry.loadoutAt = null;
   if (p.event === "Disembark") {
     next.vehicleContext = "onFoot";
     next.contextAt = timestamp;
