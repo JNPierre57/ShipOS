@@ -12,7 +12,7 @@ export const screenGalleryHtml = `<!doctype html>
     main { position: relative; width: 100vw; height: 100vh; min-height: 180px; }
     .empty { display: grid; place-items: center; width: 100%; height: 100%; color: #91a1a3; letter-spacing: .18em; text-transform: uppercase; font: 12px monospace; }
     .stage { position: absolute; inset: 0; display: grid; place-items: center; }
-    .stage img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; opacity: 0; transition: opacity 900ms ease; }
+    .stage img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; opacity: 0; transition: opacity 500ms ease; }
     .stage img.visible { opacity: 1; }
     .caption { position: absolute; left: 4vw; right: 4vw; bottom: 4vh; display: flex; justify-content: space-between; gap: 2rem; padding: .7rem 1rem; color: #bacdaa; background: rgba(8, 17, 18, .78); border-left: 3px solid #bacdaa; font: 12px/1.4 monospace; letter-spacing: .12em; text-transform: uppercase; }
     .mosaic { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-auto-rows: 1fr; gap: 1.5vw; width: 92%; height: 86%; }
