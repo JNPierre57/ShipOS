@@ -1,8 +1,11 @@
+import { CrewPanel } from "./crew-panel.js";
+import type { Crew } from "../../core/src/crew.js";
 import { useEffect, useState } from "react";
 import type { ContextState, Category } from "../../core/src/context.js";
 import type { ShipMemory } from "../../core/src/context-service.js";
 import type { Editorial } from "../../core/src/editorial.js";
 type Snapshot = ContextState & {
+  crew?: ReturnType<Crew["snapshot"]>;
   ship: ShipMemory | null;
   editorial?: ReturnType<Editorial["snapshot"]>;
   shipCommand?: {
@@ -84,6 +87,7 @@ export function ContextLab() {
         <p>Waiting for context…</p>
       ) : (
         <>
+          <CrewPanel data={data.crew} />
           <section className="panel">
             <div className="context-phase">
               <strong>{data.phase}</strong>

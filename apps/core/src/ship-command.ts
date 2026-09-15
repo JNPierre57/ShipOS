@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { statusSchema } from "./world.js";
 import type {
   DomainEvent,
   SourceEvent,
@@ -86,6 +87,7 @@ export class ShipCommands {
   };
   private freshGeneration: number | null = null;
   private freshStatus: string | null = null;
+  private freshSession: string | null = null;
   private statusValidated = false;
   private requests = new Map<string, number>();
   private lastRequest = new Map<VesselCommand, number>();
@@ -105,6 +107,9 @@ export class ShipCommands {
     ) {
       this.freshGeneration = this.link().generation;
       this.freshStatus = source.id;
+      this.freshSession = statusSchema.safeParse(source.payload).success
+        ? (this.run.world.shipTelemetry?.session ?? null)
+        : null;
       const at = Date.parse(source.sourceTimestamp ?? source.observedAt);
       const age = this.run.clock.now() - at;
       // Status.json is change-driven: validate freshness on arrival, not
@@ -133,6 +138,23 @@ export class ShipCommands {
               this.run.registry.status.get("chat-loadout")?.config ?? {},
             ),
     };
+  }
+  // Same Agent/session validation as vessel commands, independent of vessel data.
+  eliteReason(): string | null {
+    const link = this.link(),
+      t = this.run.world.shipTelemetry;
+    if (!link.connected || this.run.clock.now() - link.lastHeartbeat > 30000)
+      return "agent_unavailable";
+    if (!t?.session) return "game_not_active";
+    if (
+      this.freshGeneration !== link.generation ||
+      !this.freshStatus ||
+      t.agentId !== link.agentId ||
+      this.freshSession !== t.session
+    )
+      return "awaiting_fresh_telemetry";
+    if (!this.statusValidated) return "telemetry_stale";
+    return null;
   }
   reason(command: VesselCommand = "ship"): string | null {
     const { world, clock } = this.run,

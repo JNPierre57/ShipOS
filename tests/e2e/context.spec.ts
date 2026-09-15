@@ -346,3 +346,49 @@ test("Context Lab shows 14 scores, their evidence, ship memory and isolated repl
   await page.getByLabel("Inspect").selectOption(r.id);
   await expect(page.getByText(/CRITICAL → RECOVERY/)).toBeVisible();
 });
+
+test("Crew COMM is animated, legible and unique; the roster is visible in the existing control panel", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.goto("http://127.0.0.1:48918/overlay/?motion=full");
+  await expect(page.locator("main")).toHaveAttribute("data-connected", "true");
+  const response = await page.request.post(
+    "http://127.0.0.1:48918/api/v1/simulation",
+    { data: { level: "source", scenario: "Crew Science", speed: 1 } },
+  );
+  expect(response.ok()).toBe(true);
+  const comm = page.locator('[data-comm="SCI"]');
+  await expect(comm).toBeVisible();
+  await expect(comm.getByText("@Alice", { exact: true })).toBeVisible();
+  await expect(
+    comm.getByText("COMM // SCIENCE", { exact: true }),
+  ).toBeVisible();
+  await expect(comm).toContainText("19,010,800 CR / ESTIMATED BASE");
+  await expect(page.locator(".card")).toHaveCount(1);
+  expect(await comm.evaluate((el) => getComputedStyle(el).animationName)).toBe(
+    "comm-arrive",
+  );
+  await expect(comm.locator(".comm-body")).toHaveCSS("opacity", "1");
+  const box = await comm.boundingBox();
+  expect(box!.x).toBeGreaterThanOrEqual(0);
+  expect(box!.y).toBeGreaterThanOrEqual(0);
+  expect(box!.height).toBeLessThan(520);
+  expect(box!.x + box!.width).toBeLessThanOrEqual(1920);
+  await page.screenshot({
+    path: "test-results/crew-science.png",
+    omitBackground: true,
+  });
+  await page.goto("http://127.0.0.1:48918/control/?view=context");
+  const result = await response.json();
+  await page.getByLabel("Inspect run", { exact: true }).selectOption(result.id);
+  await expect(
+    page.getByRole("heading", { name: "Crew · Officiers de passerelle" }),
+  ).toBeVisible();
+  await expect(page.locator(".crew-roster")).toContainText("@Alice");
+  await expect(page.locator(".crew-roster")).toContainText("En service");
+  await page.screenshot({
+    path: "test-results/crew-control.png",
+    fullPage: true,
+  });
+});

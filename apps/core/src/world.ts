@@ -26,7 +26,7 @@ export function initialWorld(): WorldState {
     navRoute: null,
   };
 }
-const statusSchema = z.object({
+export const statusSchema = z.object({
   Flags: z.number().int().nonnegative(),
   Flags2: z.number().int().nonnegative().optional(),
   Fuel: z

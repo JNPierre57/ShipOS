@@ -46,6 +46,24 @@ export class PresentationEngine {
       }
     }
   }
+  private persist(run: PresentationRun) {
+    this.store.put(
+      "presentation_runs",
+      run.id,
+      run.definition.comm
+        ? {
+            ...run,
+            definition: {
+              ...run.definition,
+              comm: {
+                ...run.definition.comm,
+                displayName: "CREW MEMBER",
+              },
+            },
+          }
+        : run,
+    );
+  }
   start(
     event: DomainEvent,
     profile: Profile,
@@ -63,7 +81,7 @@ export class PresentationEngine {
     };
     const abort = new AbortController();
     this.active.set(run.id, { run, abort });
-    this.store.put("presentation_runs", run.id, run);
+    this.persist(run);
     this.emit(run, "overlay.show", {
       ...definition,
       profile,
@@ -93,7 +111,7 @@ export class PresentationEngine {
     this.emit(current.run, "audio.stop");
     this.emit(current.run, "overlay.effect.stop");
     this.emit(current.run, "overlay.hide");
-    this.store.put("presentation_runs", id, current.run);
+    this.persist(current.run);
     this.onEnd?.(current.run);
   }
   cancelAll() {

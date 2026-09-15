@@ -4,6 +4,8 @@ Commande chat `!loadout` : [faisabilité, utilisation et simulations](docs/chat-
 
 Commande chat `!screen` : [audit, configuration et exploitation](docs/chat-screen.md).
 
+Crew / officiers de passerelle : [commandes, activité, routage et limites](docs/crew-officers.md).
+
 Local flight telemetry and stream presentation for Elite Dangerous. Shadow Windows reads the game files; the Mac runs the durable Core, browser Overlay and Control Panel. Tailscale connects them. No cloud service, Docker or PM2 required.
 
 The **Context & Broadcast POC** adds independent activity evidence, persistent ship/build memory and restrained OS terminal sequences. Open [Context Lab](http://127.0.0.1:48100/control/?view=context) while Core is running; use Simulation for Quiet Travel, Combat Escalation, Close Call, Powerplay Combat or New Build. [Feasibility, defaults, limitations and benchmark](docs/context-broadcast-poc.md). The approved pre-POC release is tagged `before-context-broadcast-poc`.
@@ -46,7 +48,7 @@ The final suite includes lint, strict TypeScript, unit, integration, golden repl
 
 The Domain Event Bus independently feeds the read-only External Event API and the Director. The Director schedules FULL/COMPACT/SILENT presentations. A cancellable engine sends PresentationActions to the browser renderer. Simulation and replay own separate in-memory stores and clocks.
 
-Five public events: ship destroyed, critical hull, low fuel, high-value exobiology and remarkable body. `Died` requires a recent main-ship pre-state. `WasFootfalled` is observed state, never a claimed First Footfall achievement. Exobiology values remain estimates before sale.
+Five public events: ship destroyed, critical hull, low fuel, high-value exobiology and remarkable body. Crew decorates eligible Director selections as COMM while keeping critical SYSTEM panels intact. `Died` requires a recent main-ship pre-state. `WasFootfalled` is observed state, never a claimed First Footfall achievement. Exobiology values remain estimates before sale.
 
 # Reinstall ShipOS from zero
 

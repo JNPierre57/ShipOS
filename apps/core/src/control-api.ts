@@ -17,9 +17,17 @@ export function controlApi(
   broadcast: (data: unknown) => void,
   backupRetention = 10,
 ) {
+  app.get("/api/v1/crew", () => run.crew.snapshot());
+  app.post("/api/v1/crew/config", (req) => run.crew.configure(req.body));
+  app.post("/api/v1/crew/reset", (req) => {
+    z.strictObject({}).parse(req.body ?? {});
+    run.crew.reset();
+    return { ok: true };
+  });
   app.get("/api/v1/context", () => ({
     ...run.context.snapshot(),
     editorial: run.editorial.snapshot(),
+    crew: run.crew.snapshot(),
     shipCommand: run.shipCommands.snapshot(),
     loadoutCommand: run.shipCommands.snapshot("loadout"),
   }));
@@ -186,6 +194,7 @@ export function controlApi(
       context: {
         ...r.context.context.snapshot(),
         editorial: r.context.editorial.snapshot(),
+        crew: r.context.crew.snapshot(),
         shipCommand: r.context.shipCommands.snapshot(),
         loadoutCommand: r.context.shipCommands.snapshot("loadout"),
       },

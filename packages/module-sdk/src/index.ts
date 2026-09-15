@@ -92,6 +92,13 @@ export interface ModuleContext {
   worldState: DeepReadonly<WorldState>;
 }
 export interface PresentationDefinition {
+  comm?: {
+    department: "NAV" | "SCI" | "ENG" | "TAC";
+    displayName: string;
+    message: string;
+    facts: string[];
+    assignment: boolean;
+  };
   terminal?: {
     imagePath?: string;
     primitive:

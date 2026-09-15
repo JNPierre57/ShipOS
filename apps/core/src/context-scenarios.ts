@@ -1,5 +1,7 @@
 import { loadoutFixture, loadoutScenarioNames } from "./loadout-fixtures.js";
+import { crewScenarioNames, crewScenario } from "./crew-fixtures.js";
 export const contextScenarioNames = [
+  ...crewScenarioNames,
   "Viewer Screenshot",
   ...loadoutScenarioNames,
   "Quiet Travel",
@@ -17,6 +19,7 @@ export const contextScenarioNames = [
   "Ship Card NMS",
 ] as const;
 export function contextScenario(name: string): Record<string, unknown>[] {
+  if (crewScenarioNames.some((n) => n === name)) return crewScenario(name);
   if (name === "Viewer Screenshot")
     return [{ event: "ShipOSDemoScreen", timestamp: "2026-09-15T12:00:00Z" }];
   if (name.startsWith("Loadout "))

@@ -6,6 +6,7 @@ import type {
 } from "../../../packages/contracts/src/index.js";
 import type { ShipModule } from "../../../packages/module-sdk/src/index.js";
 import { source } from "../../../packages/testkit/src/index.js";
+import { crewScenarioMembers, crewScenarioNames } from "./crew-fixtures.js";
 import { RunContext, eventFactory } from "./runtime.js";
 import { Store } from "./store.js";
 import { VirtualClock, ReplayClock } from "./clock.js";
@@ -50,6 +51,18 @@ export class IsolatedRuns {
     const start = sourceEpoch;
     const clock =
       mode === "replay" ? new ReplayClock(start) : new VirtualClock(start);
+    const crewDemo =
+      scenario !== undefined && crewScenarioNames.some((n) => n === scenario);
+    if (crewDemo) {
+      store.put("settings", "crew:config", { confirmations: false });
+      store.put("settings", "crew:current", {
+        startedAt: start,
+        members: crewScenarioMembers(scenario!, start),
+        officers: {},
+        phrases: {},
+        receipts: [],
+      });
+    }
     const context = new RunContext(
       mode,
       store,
@@ -116,6 +129,12 @@ export class IsolatedRuns {
       agentId: "isolated:" + result.id,
       generation: 0,
     });
+    if (crewDemo)
+      context.crew.observeBroadcast({
+        connected: true,
+        active: true,
+        startedAt: start,
+      });
     let lastWall = Date.now();
     let index = 0;
     const firstTimestamp = sourceEpoch;

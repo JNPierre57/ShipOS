@@ -11,7 +11,25 @@ export const obsSchema = z.strictObject({
   port: z.number().int().min(1).max(65535).default(4455),
   allowedInputs: z.array(z.string().min(1)).default([]),
 });
+export interface BroadcastState {
+  connected: boolean;
+  active: boolean;
+  startedAt: number | null;
+  stopped?: boolean;
+  newBroadcast?: boolean;
+}
 export class ObsAdapter {
+  broadcastListeners = new Set<(state: BroadcastState) => void>();
+  private broadcastStartedAt: number | null = null;
+  private broadcast(state: Partial<BroadcastState> = {}) {
+    for (const listener of this.broadcastListeners)
+      listener({
+        connected: this.status === "READY",
+        active: this.streamActive,
+        startedAt: this.broadcastStartedAt,
+        ...state,
+      });
+  }
   status: "DISABLED" | "READY" | "DEGRADED" = "DISABLED";
   streamActive = false;
   revision = 0;
@@ -27,16 +45,24 @@ export class ObsAdapter {
       if (config.enabled) this.status = "DEGRADED";
       this.streamActive = false;
       this.revision++;
+      this.broadcast();
     });
     this.client.on("ConnectionError", () => {
       this.status = "DEGRADED";
       this.streamActive = false;
       this.revision++;
+      this.broadcast();
     });
     this.client.on("StreamStateChanged", (e) => {
-      this.streamActive = e.outputState === "OBS_WEBSOCKET_OUTPUT_STARTED";
-      if (this.streamActive) this.streamEpoch++;
+      const started = e.outputState === "OBS_WEBSOCKET_OUTPUT_STARTED";
+      this.streamActive =
+        started || e.outputState === "OBS_WEBSOCKET_OUTPUT_RECONNECTED";
+      if (started) this.streamEpoch++;
       this.revision++;
+      const stopped = e.outputState === "OBS_WEBSOCKET_OUTPUT_STOPPED";
+      if (stopped || started) this.broadcastStartedAt = null;
+      this.broadcast({ stopped, newBroadcast: started });
+      if (this.streamActive) void this.streamStatus(false).catch(() => {});
     });
     this.client.on("SceneTransitionStarted", () => {
       this.transitioning = true;
@@ -74,6 +100,7 @@ export class ObsAdapter {
             this.status = "DEGRADED";
             this.streamActive = false;
             this.revision++;
+            this.broadcast();
             reject(Error("obs_timeout"));
           }, 4000);
         }),
@@ -115,6 +142,7 @@ export class ObsAdapter {
       await this.streamStatus(false);
     } catch {
       this.status = "DEGRADED";
+      this.broadcast();
     }
   }
   async streamStatus(requireActive = true) {
@@ -123,6 +151,11 @@ export class ObsAdapter {
     const s = await this.request("GetStreamStatus");
     if (revision !== this.revision) throw Error("obs_context_changed");
     this.streamActive = s.outputActive && !s.outputReconnecting;
+    if (this.streamActive && Number.isFinite(s.outputDuration))
+      this.broadcastStartedAt = Date.now() - s.outputDuration;
+    const stopped = !s.outputActive && !s.outputReconnecting;
+    if (stopped) this.broadcastStartedAt = null;
+    this.broadcast({ stopped });
     if (
       (requireActive && !this.streamActive) ||
       !Number.isFinite(s.outputDuration)
@@ -154,7 +187,8 @@ export class ObsAdapter {
       if (
         (item.isGroup === true ||
           item.sourceType === "OBS_SOURCE_TYPE_SCENE" ||
-          (typeof item.sourceName === "string" && groups.has(item.sourceName))) &&
+          (typeof item.sourceName === "string" &&
+            groups.has(item.sourceName))) &&
         (await this.visible(
           item.sourceName,
           target,
@@ -173,7 +207,11 @@ export class ObsAdapter {
     const stream = await this.streamStatus(),
       revision = this.revision;
     const groups = new Set<string>(
-      ((await this.request("GetGroupList")).groups as Array<{ groupName?: string }>)
+      (
+        (await this.request("GetGroupList")).groups as Array<{
+          groupName?: string;
+        }>
+      )
         .map((g) => g.groupName)
         .filter((g): g is string => typeof g === "string"),
     );
@@ -187,7 +225,10 @@ export class ObsAdapter {
         (cursor.transitionCursor !== 0 && cursor.transitionCursor !== 1)
       )
         throw Error("obs_transition");
-      if (requiredSource && !(await this.visible(scene, requiredSource, false, new Set(), groups)))
+      if (
+        requiredSource &&
+        !(await this.visible(scene, requiredSource, false, new Set(), groups))
+      )
         throw Error("source_not_visible");
       if (revision !== this.revision || !this.streamActive)
         throw Error("obs_context_changed");

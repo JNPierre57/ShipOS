@@ -82,6 +82,7 @@ export async function createServer(config: CoreConfig, token: string) {
   app.get("/", async (_req, reply) => reply.redirect("/control/"));
   app.get("/overlay/ws", { websocket: true }, (socket) => {
     run.shipCommands.revalidate();
+    run.crew.revalidate();
     overlays.add(socket);
     socket.send(
       JSON.stringify({
@@ -141,7 +142,10 @@ export async function createServer(config: CoreConfig, token: string) {
     config.heartbeatMs,
     config.staleMs,
     undefined,
-    () => run.shipCommands.revalidate(),
+    () => {
+      run.shipCommands.revalidate();
+      run.crew.revalidate();
+    },
   );
   run.shipCommands.link = () => ({
     connected: gateway.status.connected,
@@ -149,6 +153,7 @@ export async function createServer(config: CoreConfig, token: string) {
     agentId: gateway.status.agentId,
     generation: gateway.status.reconnectCount,
   });
+  obs.broadcastListeners.add((state) => run.crew.observeBroadcast(state));
   const screen = new ScreenCommands(run, obs, config.dataDir);
   shipCommandApi(app, run, config.dataDir, screen);
   app.get("/health", () => ({ status: "ok", db: "ok", mode: "live" }));
@@ -157,6 +162,7 @@ export async function createServer(config: CoreConfig, token: string) {
     db: "ok",
     obs: obs.status,
     screenshots: screen.snapshot(),
+    crew: run.crew.snapshot(),
     agent: gateway.status,
     overlay: overlays.size,
     audio: audioStatus,

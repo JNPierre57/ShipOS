@@ -2,7 +2,10 @@ import type {
   DomainEvent,
   Profile,
 } from "../../../packages/contracts/src/index.js";
-import type { ShipModule } from "../../../packages/module-sdk/src/index.js";
+import type {
+  PresentationDefinition,
+  ShipModule,
+} from "../../../packages/module-sdk/src/index.js";
 import type { Clock } from "./clock.js";
 import type { Store } from "./store.js";
 import { Registry } from "./module-registry.js";
@@ -39,6 +42,10 @@ export interface Decision {
   cost: number;
 }
 export class Director {
+  decorate: (
+    event: DomainEvent,
+    definition: PresentationDefinition,
+  ) => PresentationDefinition = (_e, d) => d;
   guard: (event: DomainEvent) => string | null = () => null;
   queue: { event: DomainEvent; module: ShipModule }[] = [];
   private busy = false;
@@ -294,7 +301,7 @@ export class Director {
     d.status = "presented";
     d.reasons.push("selected");
     this.save(d);
-    this.engine.start(event, d.profile, definition);
+    this.engine.start(event, d.profile, this.decorate(event, definition));
     return d;
   }
   private ended(run: PresentationRun) {

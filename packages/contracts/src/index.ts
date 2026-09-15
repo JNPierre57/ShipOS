@@ -32,6 +32,7 @@ export const eventTypes = [
   "shipos.command.ship",
   "shipos.command.loadout",
   "shipos.command.screen",
+  "shipos.crew.assignment",
 ] as const;
 export type EventType = (typeof eventTypes)[number];
 export interface DomainEvent {

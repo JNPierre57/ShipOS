@@ -22,6 +22,7 @@ import { Editorial, editorialModule } from "./editorial.js";
 import { ShipCommands, shipModule } from "./ship-command.js";
 import { loadoutModule } from "./loadout-card.js";
 import { screenModule } from "./screen-command.js";
+import { Crew, crewModule } from "./crew.js";
 export function eventFactory(
   moduleId: string,
   candidate: Candidate,
@@ -66,6 +67,7 @@ export class RunContext {
   context: ContextService;
   editorial: Editorial;
   shipCommands: ShipCommands;
+  crew: Crew;
   private cancelTick: (() => void) | undefined;
   sessionId: string | null = null;
   constructor(
@@ -88,6 +90,7 @@ export class RunContext {
         shipModule,
         loadoutModule,
         screenModule,
+        crewModule,
       ]
         .filter(
           (m) =>
@@ -105,7 +108,10 @@ export class RunContext {
     this.engine = new PresentationEngine(clock, store);
     this.director = new Director(clock, store, this.registry, this.engine);
     this.shipCommands = new ShipCommands(this);
-    this.director.guard = (e) => this.shipCommands.guard(e);
+    this.crew = new Crew(this);
+    this.director.guard = (e) =>
+      this.shipCommands.guard(e) ?? this.crew.guard(e);
+    this.director.decorate = (e, d) => this.crew.decorate(e, d);
   }
   private scheduleContext() {
     this.cancelTick = this.clock.later(1000, () => {
@@ -125,6 +131,7 @@ export class RunContext {
   }
   contextTick() {
     this.shipCommands.revalidate();
+    this.crew.revalidate();
     const before = structuredClone(this.context.state);
     try {
       this.store.db.transaction(() => {
@@ -199,6 +206,7 @@ export class RunContext {
                   shipModule,
                   loadoutModule,
                   screenModule,
+                  crewModule,
                 ].some((m) => m.manifest.id === module.manifest.id)
               )
                 continue;
@@ -266,6 +274,7 @@ export class RunContext {
         })();
         this.world = next;
         this.shipCommands.source(source);
+        this.crew.revalidate();
         if (contextDraft) {
           this.context.state = contextDraft.draft;
           this.context.ship = contextDraft.ship;

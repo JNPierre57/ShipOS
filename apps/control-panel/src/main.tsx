@@ -1,6 +1,9 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
 import "./style.css";
+import { CrewPanel } from "./crew-panel.js";
+import type { Crew } from "../../core/src/crew.js";
+import { crewScenarioNames } from "../../core/src/crew-fixtures.js";
 import { ContextLab } from "./context-lab.js";
 type Data = Record<string, unknown>;
 const pages = [
@@ -231,6 +234,10 @@ function App() {
             </>,
           )}
         </div>
+        <CrewPanel
+          data={status.crew as ReturnType<Crew["snapshot"]> | undefined}
+          act={act}
+        />
         {panel(
           "Recent activity",
           events.length ? (
@@ -382,6 +389,7 @@ function App() {
                   onChange={(e) => setScenario(e.target.value)}
                 >
                   {[
+                    ...crewScenarioNames,
                     "Everything Goes Wrong",
                     "Viewer Screenshot",
                     "Quiet Travel",
@@ -688,9 +696,7 @@ function App() {
                   {screenshots.lastCapture &&
                   typeof screenshots.lastCapture === "object"
                     ? new Date(
-                        Number(
-                          (screenshots.lastCapture as Data).at ?? NaN,
-                        ),
+                        Number((screenshots.lastCapture as Data).at ?? NaN),
                       ).toLocaleString()
                     : "inconnue"}
                 </figcaption>
@@ -704,11 +710,7 @@ function App() {
                 Ouvrir la source Stream Memory ↗
               </a>{" "}
               ·{" "}
-              <a
-                href="/screens?mode=mosaic"
-                target="_blank"
-                rel="noreferrer"
-              >
+              <a href="/screens?mode=mosaic" target="_blank" rel="noreferrer">
                 mosaïque ↗
               </a>
             </p>

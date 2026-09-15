@@ -1,3 +1,4 @@
+import { CrewCommunication } from "./comm.js";
 import { EventVisual, timeline, type VisualCard } from "./visuals.js";
 import { TerminalSequence, type TerminalDefinition } from "./terminal.js";
 import { useEffect, useState } from "react";
@@ -136,6 +137,7 @@ export function Overlay() {
           ...old.filter((c) => c.id !== a.presentationRunId),
           {
             terminal: a.payload.terminal as TerminalDefinition | undefined,
+            comm: a.payload.comm as VisualCard["comm"],
             visual: String(a.payload.visual ?? "orbital"),
             detail:
               typeof a.payload.detail === "string" ? a.payload.detail : "",
@@ -270,7 +272,9 @@ export function Overlay() {
       <div id="PersistentLayer" />
       <div id="EventLayer">
         {cards.map((c) =>
-          c.terminal ? (
+          c.comm ? (
+            <CrewCommunication key={c.id} card={c} />
+          ) : c.terminal ? (
             <TerminalSequence key={c.id} card={c} />
           ) : (
             <EventVisual key={c.id} card={c} />

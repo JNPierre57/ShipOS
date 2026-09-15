@@ -1,8 +1,9 @@
 import { randomBytes, timingSafeEqual } from "node:crypto";
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
-import type { FastifyInstance } from "fastify";
+import type { FastifyInstance, FastifyRequest, FastifyReply } from "fastify";
 import type { RunContext } from "./runtime.js";
+import { crewRequest, crewActivityRequest } from "./crew-model.js";
 import { shipRequest } from "./ship-command.js";
 import type { ScreenCommands } from "./screen-command.js";
 export function shipCommandApi(
@@ -19,6 +20,32 @@ export function shipCommandApi(
     });
   const token = readFileSync(path, "utf8").trim();
   if (token.length < 32) throw Error("Invalid chat bridge token");
+  const authorize = async (req: FastifyRequest, reply: FastifyReply) => {
+    const got = Buffer.from(req.headers.authorization ?? ""),
+      expected = Buffer.from("Bearer " + token);
+    if (got.length !== expected.length || !timingSafeEqual(got, expected))
+      return reply.code(401).send({ error: "Unauthorized" });
+  };
+  app.post(
+    "/api/v1/commands/crew",
+    { bodyLimit: 2048, preValidation: authorize },
+    (req, reply) => {
+      const p = crewRequest.safeParse(req.body);
+      return p.success
+        ? run.crew.execute(p.data)
+        : reply.code(400).send({ error: "Invalid crew command" });
+    },
+  );
+  app.post(
+    "/api/v1/crew/activity",
+    { bodyLimit: 2048, preValidation: authorize },
+    (req, reply) => {
+      const p = crewActivityRequest.safeParse(req.body);
+      return p.success
+        ? run.crew.activity(p.data)
+        : reply.code(400).send({ error: "Invalid activity" });
+    },
+  );
   if (screen)
     app.get<{ Params: { id: string } }>("/api/v1/screens/:id", (req, reply) => {
       const bytes = screen.image(req.params.id);
@@ -56,12 +83,7 @@ export function shipCommandApi(
       `/api/v1/commands/${command}`,
       {
         bodyLimit: 2048,
-        preValidation: async (req, reply) => {
-          const got = Buffer.from(req.headers.authorization ?? ""),
-            expected = Buffer.from("Bearer " + token);
-          if (got.length !== expected.length || !timingSafeEqual(got, expected))
-            return reply.code(401).send({ error: "Unauthorized" });
-        },
+        preValidation: authorize,
       },
       async (req, reply) => {
         const parsed = shipRequest.safeParse(req.body);
