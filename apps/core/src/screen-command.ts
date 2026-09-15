@@ -67,6 +67,7 @@ const manifestSchema = z.object({
   id: z.uuid(),
   startedAt: z.number(),
   lastAt: z.number(),
+  endedAt: z.number().optional(),
   shots: z
     .array(
       z.object({
@@ -83,6 +84,7 @@ export class ScreenCommands {
   private busy = false;
   private requests = new Map<string, number>();
   private manifest: Manifest | null = null;
+  private completed: Manifest | null = null;
   private epoch: number | null = null;
   private lastAttempt = 0;
   private closed = false;
@@ -105,6 +107,18 @@ export class ScreenCommands {
         this.lastError = "manifest_invalid";
       }
     }
+    const completedPath = join(this.root, "completed.json");
+    if (existsSync(completedPath)) {
+      try {
+        this.completed = manifestSchema.parse(
+          JSON.parse(readFileSync(completedPath, "utf8")),
+        );
+      } catch {
+        this.lastError ??= "completed_manifest_invalid";
+      }
+    }
+    this.lastSuccess =
+      this.manifest?.lastAt || this.completed?.lastAt || null;
   }
   close() {
     this.closed = true;
@@ -115,6 +129,7 @@ export class ScreenCommands {
     );
   }
   snapshot() {
+    const latest = this.latestShot();
     return {
       enabled: this.run.registry.status.get("chat-screen")?.enabled ?? false,
       obs: this.obs.status,
@@ -123,12 +138,83 @@ export class ScreenCommands {
       config: this.config(),
       count:
         this.obs.streamActive &&
-        (this.epoch === null || this.epoch === this.obs.streamEpoch)
-          ? (this.manifest?.shots.length ?? 0)
-          : 0,
+        this.epoch !== null &&
+        this.epoch !== this.obs.streamEpoch
+          ? 0
+          : (this.manifest?.shots.length ?? 0),
       lastSuccess: this.lastSuccess,
       lastError: this.lastError,
+      lastImagePath: latest
+        ? `/api/v1/screens/gallery/${latest.session}/${latest.shot.id}`
+        : null,
+      lastCapture: latest
+        ? {
+            id: latest.shot.id,
+            session: latest.session,
+            at: latest.shot.at,
+            scene: latest.shot.scene,
+          }
+        : null,
     };
+  }
+  private latestShot() {
+    const candidates = [
+      ...(this.manifest?.shots ?? []).map((shot) => ({
+        session: this.manifest!.id,
+        shot,
+      })),
+      ...(this.completed?.shots ?? []).map((shot) => ({
+        session: this.completed!.id,
+        shot,
+      })),
+    ];
+    return candidates.sort((a, b) => b.shot.at - a.shot.at)[0] ?? null;
+  }
+  private persistJson(path: string, value: unknown) {
+    mkdirSync(this.root, { recursive: true, mode: 0o700 });
+    const temp = `${path}.${randomUUID()}.tmp`;
+    writeFileSync(temp, JSON.stringify(value), { mode: 0o600, flag: "wx" });
+    renameSync(temp, path);
+  }
+  private persistSession(manifest: Manifest) {
+    this.persistJson(
+      join(this.root, manifest.id, "manifest.json"),
+      manifest,
+    );
+  }
+  gallery() {
+    const sessions = [this.completed, this.manifest]
+      .filter((manifest): manifest is Manifest => Boolean(manifest?.shots.length))
+      .sort((a, b) => b.startedAt - a.startedAt)
+      .map((manifest) => ({
+        id: manifest.id,
+        startedAt: manifest.startedAt,
+        endedAt: manifest.endedAt ?? null,
+        active: manifest.id === this.manifest?.id,
+        shots: manifest.shots.map((shot) => ({
+          id: shot.id,
+          at: shot.at,
+          scene: shot.scene,
+          url: `/api/v1/screens/gallery/${manifest.id}/${shot.id}`,
+        })),
+      }));
+    return {
+      activeSessionId: this.manifest?.id ?? null,
+      sessions,
+    };
+  }
+  galleryImage(sessionId: string, id: string) {
+    if (!z.uuid().safeParse(sessionId).success || !z.uuid().safeParse(id).success)
+      return null;
+    const manifest = [this.manifest, this.completed].find(
+      (candidate) => candidate?.id === sessionId,
+    );
+    if (!manifest?.shots.some((shot) => shot.id === id)) return null;
+    try {
+      return readFileSync(join(this.root, sessionId, id + ".jpg"));
+    } catch {
+      return null;
+    }
   }
   image(id: string) {
     if (
@@ -183,6 +269,10 @@ export class ScreenCommands {
         Math.abs(this.manifest.startedAt - stream.startedAt) > 5000 ||
         (this.epoch !== null && this.epoch !== stream.epoch)
       ) {
+        if (this.manifest?.shots.length) {
+          this.completed = { ...this.manifest, endedAt: stream.startedAt };
+          this.persistJson(join(this.root, "completed.json"), this.completed);
+        }
         this.manifest = {
           id: randomUUID(),
           startedAt: stream.startedAt,
@@ -253,10 +343,8 @@ export class ScreenCommands {
           },
         ],
       };
-      temp = join(this.root, "active.json.tmp");
-      writeFileSync(temp, JSON.stringify(next), { mode: 0o600 });
-      renameSync(temp, join(this.root, "active.json"));
-      temp = undefined;
+      this.persistSession(next);
+      this.persistJson(join(this.root, "active.json"), next);
       this.manifest = next;
       final = undefined;
       this.lastSuccess = now;

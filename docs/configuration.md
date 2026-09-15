@@ -10,6 +10,8 @@ Dynamic settings live in SQLite settings, through Control API: module config/ena
 
 Core `obs` config: enabled false, host127.0.0.1, port4455, allowedInputs []. When enabled, `!screen` also uses the existing local obs-websocket connection. The `chat-screen` module config defaults to `captureMode: "program"`, `programScene: "Relay - In-Game (Purple)"`, `requiredSource: ""`, `maxCaptures: 30`. Connection failure marks adapter DEGRADED; Browser Source continues. No scene/transform mutation is implemented. Configure the websocket password only through the private `SHIPOS_OBS_PASSWORD` environment file.
 
+The optional local intermission source is `/screens` (slideshow) or `/screens?mode=mosaic` (grid). It reads only the latest active or completed screenshot session and adds no configuration key or external service.
+
 Core moduleFailureThreshold config defaults3 consecutive errors; successful hook clears the counter. Re-enable through Modules after fixing the configuration/cause. Configuration and error state survive restart.
 
 Data directories are independent of the repository. Maintain sufficient free space for a disconnected Agent's unACKed spool; durability takes priority over dropping old events.

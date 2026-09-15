@@ -42,6 +42,19 @@ test("Viewer Screenshot uses a local image, silent animated confirmation and no 
   });
   await expect(page.locator(".card")).toHaveCount(0, { timeout: 10000 });
 });
+test("Stream Memory browser source is local and supports mosaic mode", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.goto("http://127.0.0.1:48918/screens?mode=mosaic");
+  await expect(page).toHaveTitle("ShipOS · Stream Memory");
+  await expect(page.getByText("STREAM MEMORY / NO CAPTURES")).toBeVisible();
+  const response = await page.request.get(
+    "http://127.0.0.1:48918/api/v1/screens/gallery",
+  );
+  expect(response.ok()).toBe(true);
+  expect(await response.json()).toMatchObject({ sessions: [] });
+});
 test("loadout renders a bounded animated module summary in the existing overlay", async ({
   page,
 }) => {

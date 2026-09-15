@@ -109,6 +109,7 @@ function App() {
     director = (status.director ?? {}) as Data,
     world = (status.world ?? {}) as Data,
     modules = (status.modules ?? []) as Data[],
+    screenshots = (status.screenshots ?? {}) as Data,
     activeExpedition = status.expedition as Data | null;
   const title = (text: string, description: string) => (
     <header className="page-heading">
@@ -586,7 +587,7 @@ function App() {
       <>
         {title(
           "Your broadcast surface.",
-          "One transparent Browser Source for all ShipOS presentations.",
+          "One transparent Browser Source for alerts, plus an optional Stream Memory source for intermission.",
         )}
         {panel(
           "Preview",
@@ -676,7 +677,41 @@ function App() {
         {panel(
           "Captures viewers / !screen",
           <>
+            {typeof screenshots.lastImagePath === "string" ? (
+              <figure className="screen-preview">
+                <img
+                  src={screenshots.lastImagePath}
+                  alt="Dernière capture du stream"
+                />
+                <figcaption>
+                  Dernière capture ·{" "}
+                  {screenshots.lastCapture &&
+                  typeof screenshots.lastCapture === "object"
+                    ? new Date(
+                        Number(
+                          (screenshots.lastCapture as Data).at ?? NaN,
+                        ),
+                      ).toLocaleString()
+                    : "inconnue"}
+                </figcaption>
+              </figure>
+            ) : (
+              <p className="muted">Aucune capture enregistrée.</p>
+            )}
             <Json value={status.screenshots} />
+            <p>
+              <a href="/screens" target="_blank" rel="noreferrer">
+                Ouvrir la source Stream Memory ↗
+              </a>{" "}
+              ·{" "}
+              <a
+                href="/screens?mode=mosaic"
+                target="_blank"
+                rel="noreferrer"
+              >
+                mosaïque ↗
+              </a>
+            </p>
             <button onClick={() => void act("obs/reconnect", {})}>
               Reconnecter OBS
             </button>

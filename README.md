@@ -23,6 +23,7 @@ The environment file contains `SHIPOS_AGENT_TOKEN=your-generated-secret`. Genera
 
 - Control Panel: http://127.0.0.1:48100/control
 - OBS Browser Source: http://127.0.0.1:48100/overlay
+- Stream Memory intermission Browser Source: http://127.0.0.1:48100/screens
 - Health: http://127.0.0.1:48100/health
 - Agent Gateway: `ws://YOUR-MAC-TAILSCALE-HOST:48101/agent/v1/ws`
 

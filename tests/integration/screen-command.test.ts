@@ -168,6 +168,21 @@ test("screen authenticates, rejects extra parameters and persists only file refe
     expect(
       (await app.inject(card.definition.terminal!.imagePath!)).rawPayload,
     ).toEqual(jpeg);
+    const status = t.screen.snapshot(),
+      gallery = t.screen.gallery();
+    expect(status.lastImagePath).toMatch(
+      /^\/api\/v1\/screens\/gallery\/[0-9a-f-]{36}\/[0-9a-f-]{36}$/,
+    );
+    expect(gallery.sessions).toHaveLength(1);
+    expect(gallery.sessions[0]!.shots[0]!.url).toBe(status.lastImagePath);
+    expect(
+      (
+        await app.inject({
+          method: "GET",
+          url: gallery.sessions[0]!.shots[0]!.url,
+        })
+      ).rawPayload,
+    ).toEqual(jpeg);
     expect(
       (await app.inject("/api/v1/screens/%2e%2e%2fsecret")).statusCode,
     ).toBe(404);
@@ -268,6 +283,12 @@ test("nested visible source accepted; cooldown/quota survive restart; new live h
         join(t.dir, "screens", first.id, first.shots[0].id + ".jpg"),
       ),
     ).toEqual(jpeg);
+    const gallery = new ScreenCommands(t.run, t.obs, t.dir).gallery();
+    expect(gallery.sessions).toHaveLength(2);
+    expect(gallery.sessions.find((s) => s.id === first.id)).toMatchObject({
+      active: false,
+      shots: [{ id: first.shots[0].id }],
+    });
   } finally {
     t.close();
   }

@@ -16,6 +16,7 @@ import { createGateway } from "./gateway.js";
 import { modules } from "./modules.js";
 import { shipCommandApi } from "./ship-command-api.js";
 import { ScreenCommands } from "./screen-command.js";
+import { screenGalleryHtml } from "./screen-gallery.js";
 export async function createServer(config: CoreConfig, token: string) {
   const logger = createLogger(join(config.dataDir, "logs"));
   const obs = new ObsAdapter(config.obs);
@@ -72,6 +73,12 @@ export async function createServer(config: CoreConfig, token: string) {
   });
   app.get("/overlay", async (_req, reply) => reply.redirect("/overlay/"));
   app.get("/control", async (_req, reply) => reply.redirect("/control/"));
+  app.get("/screens", async (_req, reply) =>
+    reply.type("text/html; charset=utf-8").send(screenGalleryHtml),
+  );
+  app.get("/screens/", async (_req, reply) =>
+    reply.type("text/html; charset=utf-8").send(screenGalleryHtml),
+  );
   app.get("/", async (_req, reply) => reply.redirect("/control/"));
   app.get("/overlay/ws", { websocket: true }, (socket) => {
     run.shipCommands.revalidate();

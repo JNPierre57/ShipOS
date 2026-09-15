@@ -29,6 +29,21 @@ export function shipCommandApi(
         .type("image/jpeg")
         .send(bytes);
     });
+  if (screen) {
+    app.get("/api/v1/screens/gallery", () => screen.gallery());
+    app.get<{ Params: { session: string; id: string } }>(
+      "/api/v1/screens/gallery/:session/:id",
+      (req, reply) => {
+        const bytes = screen.galleryImage(req.params.session, req.params.id);
+        if (!bytes) return reply.code(404).send({ error: "Not found" });
+        return reply
+          .header("Cache-Control", "no-store")
+          .header("X-Content-Type-Options", "nosniff")
+          .type("image/jpeg")
+          .send(bytes);
+      },
+    );
+  }
   for (const command of ["ship", "loadout", "screen"] as const) {
     if (command === "screen" && !screen) continue;
     app.get(`/api/v1/commands/${command}/status`, () =>
