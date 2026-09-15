@@ -165,6 +165,9 @@ test("screen authenticates, rejects extra parameters and persists only file refe
     expect(
       JSON.stringify(t.store.event("chat-screen:" + body.requestId)),
     ).not.toContain("base64");
+    expect(card.definition.terminal!.imagePath).toMatch(
+      /^\/api\/v1\/screens\/gallery\/[0-9a-f-]{36}\/[0-9a-f-]{36}$/,
+    );
     expect(
       (await app.inject(card.definition.terminal!.imagePath!)).rawPayload,
     ).toEqual(jpeg);

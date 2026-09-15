@@ -51,7 +51,9 @@ export function TerminalSequence({ card }: { card: VisualCard }) {
         ))}
       </div>
       {terminal.imagePath &&
-        (/^\/api\/v1\/screens\/[0-9a-f-]{36}$/.test(terminal.imagePath) ||
+        (/^\/api\/v1\/screens\/(?:gallery\/[0-9a-f-]{36}\/)?[0-9a-f-]{36}$/.test(
+          terminal.imagePath,
+        ) ||
           terminal.imagePath === "/overlay/fixtures/screen.svg") && (
           <img
             className="screenshot-thumbnail"

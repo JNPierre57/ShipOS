@@ -357,7 +357,10 @@ export class ScreenCommands {
             semanticKey: "chat:screen",
             quality: "derived",
             sourceIds: [],
-            payload: { imagePath: `/api/v1/screens/${id}`, session: next.id },
+            payload: {
+              imagePath: `/api/v1/screens/gallery/${next.id}/${id}`,
+              session: next.id,
+            },
           },
           {
             id: request.requestId,
